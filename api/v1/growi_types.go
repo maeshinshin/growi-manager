@@ -28,8 +28,43 @@ type GrowiSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Foo is an example field of Growi. Edit growi_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	//+kubebuilder:default:="7"
+	//+kubebuilder:validation:Optional
+	Growi_version string `json:"growi_version"`
+
+	//+kubebuilder:default:="growi-app"
+	//+kubebuilder:validation:Optional
+	Growi_app_namespace string `json:"growi_app_namespace"`
+
+	//+kubebuilder:validation:Minimum=1
+	//+kubebuilder:default:=1
+	//+kubebuilder:validation:Optional
+	Growi_replicas int32 `json:"growi_replicas"`
+
+	//+kubebuilder:default:="6.0"
+	//+kubebuilder:validation:Optional
+	Mongo_db_version string `json:"mongo_db_version"`
+
+	//+kubebuilder:default:="growi-mongo_db"
+	//+kubebuilder:validation:Optional
+	Mongo_db_namespace string `json:"mongo_db_namespace"`
+
+	//+kubebuilder:validation:Minimum=1
+	//+kubebuilder:default:=1
+	//+kubebuilder:validation:Optional
+	Mongo_db_replicas int32 `json:"mongo_db_replicas"`
+
+	//+kubebuilder:default:="10Gi"
+	//+kubebuilder:validation:Optional
+	Mongo_db_storageRequest string `json:"mongo_db_storagerequest"`
+
+	//+kubebuilder:default:="nfs-client"
+	//+kubebuilder:validation:Required
+	Mongo_db_storageClass string `json:"mongo_db_storageclass"`
+
+	//+kubebuilder:default:="growi-es"
+	//+kubebuilder:validation:Optional
+	Elasticsearch_namespace string `json:"elasticsearch_namespace"`
 }
 
 // GrowiStatus defines the observed state of Growi
