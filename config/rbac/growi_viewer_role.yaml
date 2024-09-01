@@ -8,7 +8,7 @@ metadata:
   name: growi-viewer-role
 rules:
 - apiGroups:
-  - maeshinshin.github.io.maeshinshin.github.io
+  - maeshinshin.github.io
   resources:
   - growis
   verbs:
@@ -16,7 +16,7 @@ rules:
   - list
   - watch
 - apiGroups:
-  - maeshinshin.github.io.maeshinshin.github.io
+  - maeshinshin.github.io
   resources:
   - growis/status
   verbs:

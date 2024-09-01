@@ -8,7 +8,7 @@ metadata:
   name: growi-editor-role
 rules:
 - apiGroups:
-  - maeshinshin.github.io.maeshinshin.github.io
+  - maeshinshin.github.io
   resources:
   - growis
   verbs:
@@ -20,7 +20,7 @@ rules:
   - update
   - watch
 - apiGroups:
-  - maeshinshin.github.io.maeshinshin.github.io
+  - maeshinshin.github.io
   resources:
   - growis/status
   verbs:

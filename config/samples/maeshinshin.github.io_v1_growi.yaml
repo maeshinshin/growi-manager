@@ -1,4 +1,4 @@
-apiVersion: maeshinshin.github.io.maeshinshin.github.io/v1
+apiVersion: maeshinshin.github.io/v1
 kind: Growi
 metadata:
   labels:
