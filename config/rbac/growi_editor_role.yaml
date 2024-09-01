@@ -1,0 +1,27 @@
+# permissions for end users to edit growis.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: growi-manager
+    app.kubernetes.io/managed-by: kustomize
+  name: growi-editor-role
+rules:
+- apiGroups:
+  - maeshinshin.github.io.maeshinshin.github.io
+  resources:
+  - growis
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - maeshinshin.github.io.maeshinshin.github.io
+  resources:
+  - growis/status
+  verbs:
+  - get

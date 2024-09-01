@@ -1,0 +1,4 @@
+## Append samples of your project ##
+resources:
+- maeshinshin.github.io_v1_growi.yaml
+# +kubebuilder:scaffold:manifestskustomizesamples

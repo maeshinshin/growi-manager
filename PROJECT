@@ -7,4 +7,14 @@ layout:
 - go.kubebuilder.io/v4
 projectName: growi-manager
 repo: github.com/maeshinshin/growi-manager
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: maeshinshin.github.io
+  group: maeshinshin.github.io
+  kind: Growi
+  path: github.com/maeshinshin/growi-manager/api/v1
+  version: v1
 version: "3"

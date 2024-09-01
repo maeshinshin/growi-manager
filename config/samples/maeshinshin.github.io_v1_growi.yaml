@@ -1,0 +1,9 @@
+apiVersion: maeshinshin.github.io.maeshinshin.github.io/v1
+kind: Growi
+metadata:
+  labels:
+    app.kubernetes.io/name: growi-manager
+    app.kubernetes.io/managed-by: kustomize
+  name: growi-sample
+spec:
+  # TODO(user): Add fields here

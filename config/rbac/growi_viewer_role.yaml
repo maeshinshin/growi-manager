@@ -1,0 +1,23 @@
+# permissions for end users to view growis.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: growi-manager
+    app.kubernetes.io/managed-by: kustomize
+  name: growi-viewer-role
+rules:
+- apiGroups:
+  - maeshinshin.github.io.maeshinshin.github.io
+  resources:
+  - growis
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - maeshinshin.github.io.maeshinshin.github.io
+  resources:
+  - growis/status
+  verbs:
+  - get
