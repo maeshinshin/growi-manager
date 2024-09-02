@@ -28,26 +28,34 @@ type GrowiSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	//+kubebuilder:default:="7"
-	//+kubebuilder:validation:Optional
-	Growi_version string `json:"growi_version"`
-
 	//+kubebuilder:default:="growi-app"
 	//+kubebuilder:validation:Optional
 	Growi_app_namespace string `json:"growi_app_namespace"`
+
+	//+kubebuilder:default:="7"
+	//+kubebuilder:validation:Optional
+	Growi_version string `json:"growi_version"`
 
 	//+kubebuilder:validation:Minimum=1
 	//+kubebuilder:default:=1
 	//+kubebuilder:validation:Optional
 	Growi_replicas int32 `json:"growi_replicas"`
 
+	//+kubebuilder:default:="standard"
+	//+kubebuilder:validation:Required
+	Growi_storageClass string `json:"growi_storageclass"`
+
+	//+kubebuilder:default:="10Gi"
+	//+kubebuilder:validation:Optional
+	Growi_storageRequest string `json:"growi_storagerequest"`
+
+	//+kubebuilder:default:="growi-mongodb"
+	//+kubebuilder:validation:Optional
+	Mongo_db_namespace string `json:"mongo_db_namespace"`
+
 	//+kubebuilder:default:="6.0"
 	//+kubebuilder:validation:Optional
 	Mongo_db_version string `json:"mongo_db_version"`
-
-	//+kubebuilder:default:="growi-mongo_db"
-	//+kubebuilder:validation:Optional
-	Mongo_db_namespace string `json:"mongo_db_namespace"`
 
 	//+kubebuilder:validation:Minimum=1
 	//+kubebuilder:default:=1
@@ -58,13 +66,30 @@ type GrowiSpec struct {
 	//+kubebuilder:validation:Optional
 	Mongo_db_storageRequest string `json:"mongo_db_storagerequest"`
 
-	//+kubebuilder:default:="nfs-client"
+	//+kubebuilder:default:="standard"
 	//+kubebuilder:validation:Required
 	Mongo_db_storageClass string `json:"mongo_db_storageclass"`
 
 	//+kubebuilder:default:="growi-es"
 	//+kubebuilder:validation:Optional
 	Elasticsearch_namespace string `json:"elasticsearch_namespace"`
+
+	//+kubebuilder:default:="8.7.0"
+	//+kubebuilder:validation:Optional
+	Elasticsearch_version string `json:"elasticsearch_version"`
+
+	//+kubebuilder:validation:Minimum=1
+	//+kubebuilder:default:=1
+	//+kubebuilder:validation:Optional
+	Elasticsearch_replicas int32 `json:"elasticsearch_replicas"`
+
+	//+kubebuilder:default:="standard"
+	//+kubebuilder:validation:Required
+	Elasticsearch_storageClass string `json:"elasticsearch_storageclass"`
+
+	//+kubebuilder:default:="10Gi"
+	//+kubebuilder:validation:Optional
+	Elasticsearch_storageRequest string `json:"elasticsearch_storagerequest"`
 }
 
 // GrowiStatus defines the observed state of Growi
