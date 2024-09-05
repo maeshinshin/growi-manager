@@ -43,7 +43,7 @@ spec:
                 default: growi-es
                 type: string
               elasticsearch_replicas:
-                default: 1
+                default: 3
                 format: int32
                 minimum: 1
                 type: integer
@@ -77,7 +77,7 @@ spec:
                 default: growi-mongodb
                 type: string
               mongo_db_replicas:
-                default: 1
+                default: 3
                 format: int32
                 minimum: 1
                 type: integer

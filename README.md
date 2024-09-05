@@ -16,7 +16,7 @@
 **Build and push your image to the location specified by `IMG`:**
 
 ```sh
-make docker-build docker-push IMG=<some-registry>/growi-manager:tag
+make docker-build docker-push IMG=ghcr.io/maeshinshin/growi-manager:0.2.0
 ```
 
 **NOTE:** This image ought to be published in the personal registry you specified.

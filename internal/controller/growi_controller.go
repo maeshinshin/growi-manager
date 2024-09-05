@@ -18,6 +18,8 @@ package controller
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	appv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -73,14 +75,12 @@ func (r *GrowiReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 	if res, err := r.CreateOrUpdateGrowiNamespace(ctx, req, growi, logger); err != nil {
 		return res, err
 	}
+
 	if res, err := r.CreateOrUpdateMongodbNamespace(ctx, req, growi, logger); err != nil {
 		return res, err
 	}
-	if res, err := r.CreateOrUpdateElasticsearchNamespace(ctx, req, growi, logger); err != nil {
-		return res, err
-	}
 
-	if res, err := r.CreateOrUpdateMongodbStatefulSet(ctx, req, growi, logger); err != nil {
+	if res, err := r.CreateOrUpdateElasticsearchNamespace(ctx, req, growi, logger); err != nil {
 		return res, err
 	}
 
@@ -88,7 +88,7 @@ func (r *GrowiReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 		return res, err
 	}
 
-	if res, err := r.CreateOrUpdateElasticsearchStatefulSet(ctx, req, growi, logger); err != nil {
+	if res, err := r.CreateOrUpdateMongodbStatefulSet(ctx, req, growi, logger); err != nil {
 		return res, err
 	}
 
@@ -96,11 +96,15 @@ func (r *GrowiReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 		return res, err
 	}
 
-	if res, err := r.CreateOrUpdateGrowiStatefulSet(ctx, req, growi, logger); err != nil {
+	if res, err := r.CreateOrUpdateElasticsearchStatefulSet(ctx, req, growi, logger); err != nil {
 		return res, err
 	}
 
 	if res, err := r.CreateOrUpdateGrowiService(ctx, req, growi, logger); err != nil {
+		return res, err
+	}
+
+	if res, err := r.CreateOrUpdateGrowiStatefulSet(ctx, req, growi, logger); err != nil {
 		return res, err
 	}
 
@@ -219,11 +223,11 @@ func (r *GrowiReconciler) CreateOrUpdateGrowiStatefulSet(ctx context.Context, re
 							Env: []corev1.EnvVar{
 								{
 									Name:  "MONGO_URI",
-									Value: "mongodb://mongo:27017/growi",
+									Value: "mongodb://growi-db-service-" + growi.Name + "." + growi.Spec.Mongo_db_namespace + ".svc.cluster.local" + ":27017/growi",
 								},
 								{
 									Name:  "ELASTICSEARCH_URI",
-									Value: "http://elasticsearch:9200/growi",
+									Value: "http://growi-es-service-" + growi.Name + "." + growi.Spec.Elasticsearch_namespace + ".svc.cluster.local" + ":9200/growi",
 								},
 							},
 						},
@@ -262,7 +266,7 @@ func (r *GrowiReconciler) CreateOrUpdateGrowiStatefulSet(ctx context.Context, re
 
 func (r *GrowiReconciler) CreateOrUpdateGrowiService(ctx context.Context, req ctrl.Request, growi maeshinshingithubiov1.Growi, logger logr.Logger) (ctrl.Result, error) {
 	growi_service := &corev1.Service{}
-	growi_service.SetName("growi-app-service" + growi.Name)
+	growi_service.SetName("growi-app-service-" + growi.Name)
 	growi_service.SetNamespace(growi.Spec.Growi_app_namespace)
 	logger.Info("CreateOrUpdateGrowiService: start", "Service", growi_service.Name)
 	if op, err := ctrl.CreateOrUpdate(ctx, r.Client, growi_service, func() error {
@@ -294,6 +298,15 @@ func (r *GrowiReconciler) CreateOrUpdateMongodbStatefulSet(ctx context.Context, 
 	mongodb_statefulset.SetNamespace(growi.Spec.Mongo_db_namespace)
 	mongodb_statefulset.SetName("growi-db-" + growi.Name)
 	logger.Info("CreateOrUpdateMongodbStatefulSet: start", "StatefulSet", mongodb_statefulset.Name)
+	members := make([]string, growi.Spec.Mongo_db_replicas)
+	for i := 0; i < int(growi.Spec.Mongo_db_replicas); i++ {
+		host := fmt.Sprintf(mongodb_statefulset.Name+"-%d."+"growi-db-service-"+growi.Name+"."+growi.Spec.Mongo_db_namespace+".svc.cluster.local:27017", i)
+		member := fmt.Sprintf("{_id: %d, host: \"%s\"}", i, host)
+		members[i] = member
+	}
+	membersString := strings.Join(members, ", ")
+	mongoCommand := fmt.Sprintf("mongosh --eval 'rs.initiate({_id: \"%s\", members: [%s]})';", growi.Name, membersString)
+
 	if op, err := ctrl.CreateOrUpdate(ctx, r.Client, mongodb_statefulset, func() error {
 		mongodb_statefulset.Spec = appv1.StatefulSetSpec{
 			ServiceName: "growi-db-service-" + growi.Name,
@@ -328,6 +341,19 @@ func (r *GrowiReconciler) CreateOrUpdateMongodbStatefulSet(ctx context.Context, 
 						{
 							Name:  "mongo",
 							Image: "mongo:" + growi.Spec.Mongo_db_version,
+							Command: []string{
+								"/bin/sh",
+								"-c",
+							},
+							Args: []string{
+								fmt.Sprintf(
+									"mongod --replSet=%s --bind_ip_all & sleep 10 && if [ $(hostname) = '%s-%d' ]; then %s fi && wait",
+									growi.Name,
+									mongodb_statefulset.Name,
+									growi.Spec.Mongo_db_replicas-1,
+									mongoCommand,
+								),
+							},
 							Ports: []corev1.ContainerPort{
 								{
 									ContainerPort: 27017,

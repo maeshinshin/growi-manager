@@ -58,7 +58,7 @@ type GrowiSpec struct {
 	Mongo_db_version string `json:"mongo_db_version"`
 
 	//+kubebuilder:validation:Minimum=1
-	//+kubebuilder:default:=1
+	//+kubebuilder:default:=3
 	//+kubebuilder:validation:Optional
 	Mongo_db_replicas int32 `json:"mongo_db_replicas"`
 
@@ -79,7 +79,7 @@ type GrowiSpec struct {
 	Elasticsearch_version string `json:"elasticsearch_version"`
 
 	//+kubebuilder:validation:Minimum=1
-	//+kubebuilder:default:=1
+	//+kubebuilder:default:=3
 	//+kubebuilder:validation:Optional
 	Elasticsearch_replicas int32 `json:"elasticsearch_replicas"`
 

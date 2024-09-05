@@ -13,11 +13,11 @@ spec:
   growi_storagerequest: "10Gi"
   mongo_db_namespace: "growi-db"
   mongo_db_version: "6.0"
-  mongo_db_replicas: 1
+  mongo_db_replicas: 3
   mongo_db_storageclass: "nfs-client"
   mongo_db_storagerequest: "10Gi"
   elasticsearch_namespace: "growi-es"
   elasticsearch_version: "8.7.0"
-  elasticsearch_replicas: 1
+  elasticsearch_replicas: 3
   elasticsearch_storageclass: "nfs-client"
   elasticsearch_storagerequest: "10Gi"
