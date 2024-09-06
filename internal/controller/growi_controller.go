@@ -347,7 +347,7 @@ func (r *GrowiReconciler) CreateOrUpdateMongodbStatefulSet(ctx context.Context, 
 							},
 							Args: []string{
 								fmt.Sprintf(
-									"mongod --replSet=%s --bind_ip_all & sleep 10 && if [ $(hostname) = '%s-%d' ]; then %s fi && wait",
+									"mongod --replSet=%s --bind_ip_all & sleep 10 && if [ ! -f /init/init_done ]; then if [ $(hostname) = '%s-%d' ]; then %s touch /init/init_done; fi else echo \"Initialization already done, skipping.\"; fi && wait",
 									growi.Name,
 									mongodb_statefulset.Name,
 									growi.Spec.Mongo_db_replicas-1,
@@ -363,6 +363,10 @@ func (r *GrowiReconciler) CreateOrUpdateMongodbStatefulSet(ctx context.Context, 
 								{
 									Name:      "growi-db-pvc-" + growi.Name,
 									MountPath: "/data/db",
+								},
+								{
+									Name:      "growi-db-pvc-init-check-" + growi.Name,
+									MountPath: "/init",
 								},
 							},
 						},
@@ -383,6 +387,23 @@ func (r *GrowiReconciler) CreateOrUpdateMongodbStatefulSet(ctx context.Context, 
 						Resources: corev1.VolumeResourceRequirements{
 							Requests: corev1.ResourceList{
 								corev1.ResourceStorage: resource.MustParse(growi.Spec.Mongo_db_storageRequest),
+							},
+						},
+					},
+				},
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "growi-db-pvc-init-check-" + growi.Name,
+						Namespace: growi.Spec.Mongo_db_namespace,
+					},
+					Spec: corev1.PersistentVolumeClaimSpec{
+						StorageClassName: &growi.Spec.Mongo_db_storageClass,
+						AccessModes: []corev1.PersistentVolumeAccessMode{
+							corev1.ReadWriteOnce,
+						},
+						Resources: corev1.VolumeResourceRequirements{
+							Requests: corev1.ResourceList{
+								corev1.ResourceStorage: resource.MustParse("1Ki"),
 							},
 						},
 					},
