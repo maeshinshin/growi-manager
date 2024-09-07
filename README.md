@@ -52,22 +52,14 @@ make uninstall
 make undeploy
 ```
 
-## Project Distribution
+## How to install 
 
-Following are the steps to build the installer and distribute this project to users.
-
-1. Build the installer for the image built and published in the registry:
-
-```sh
-make build-installer IMG=<some-registry>/growi-manager:tag
-```
-
-2. Using the installer
+1. Using the installer
 
 Users can just run kubectl apply -f <URL for YAML BUNDLE> to install the project, i.e.:
 
 ```sh
-kubectl apply -f https://raw.githubusercontent.com/maeshinshin/growi-manager/0.3.0/dist/install.yaml
+kubectl apply -f https://raw.githubusercontent.com/maeshinshin/growi-manager/main/dist/install.yaml
 ```
 
 ## Contributing
