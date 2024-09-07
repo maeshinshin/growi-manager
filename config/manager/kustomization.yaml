@@ -5,4 +5,4 @@ kind: Kustomization
 images:
 - name: controller
   newName: ghcr.io/maeshinshin/growi-manager
-  newTag: 0.2.30
+  newTag: 0.3.0
