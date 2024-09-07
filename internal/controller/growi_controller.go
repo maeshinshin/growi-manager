@@ -452,6 +452,13 @@ func (r *GrowiReconciler) CreateOrUpdateElasticsearchStatefulSet(ctx context.Con
 	elasticsearch_statefulset.SetName("growi-es-" + growi.Name)
 	elasticsearch_statefulset.SetNamespace(growi.Spec.Elasticsearch_namespace)
 	logger.Info("CreateOrUpdateElasticsearchStatefulSet: start", "StatefulSet", elasticsearch_statefulset.Name)
+
+	nodes := make([]string, growi.Spec.Elasticsearch_replicas)
+	for i := 0; i < int(growi.Spec.Mongo_db_replicas); i++ {
+		host := fmt.Sprintf(elasticsearch_statefulset.Name+"-%d."+"growi-es-service-"+growi.Name+"."+growi.Spec.Elasticsearch_namespace+".svc.cluster.local", i)
+		nodes[i] = fmt.Sprintf("%s", host)
+	}
+	allNodes := strings.Join(nodes, ", ")
 	if op, err := ctrl.CreateOrUpdate(ctx, r.Client, elasticsearch_statefulset, func() error {
 		elasticsearch_statefulset.Spec = appv1.StatefulSetSpec{
 			ServiceName: "growi-es-service-" + growi.Name,
@@ -487,7 +494,12 @@ func (r *GrowiReconciler) CreateOrUpdateElasticsearchStatefulSet(ctx context.Con
 							Image: "docker.elastic.co/elasticsearch/elasticsearch:" + growi.Spec.Elasticsearch_version,
 							Ports: []corev1.ContainerPort{
 								{
+									Name:          "http",
 									ContainerPort: 9200,
+								},
+								{
+									Name:          "transport",
+									ContainerPort: 9300,
 								},
 							},
 							VolumeMounts: []corev1.VolumeMount{
@@ -500,7 +512,39 @@ func (r *GrowiReconciler) CreateOrUpdateElasticsearchStatefulSet(ctx context.Con
 									MountPath: "/usr/share/elasticsearch/plugins",
 								},
 							},
+							SecurityContext: &corev1.SecurityContext{
+								Capabilities: &corev1.Capabilities{
+									Add: []corev1.Capability{
+										"IPC_LOCK",
+										"SYS_RESOURCE",
+									},
+								},
+							},
 							Env: []corev1.EnvVar{
+								{
+									Name: "NODE_NAME",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "metadata.name",
+										},
+									},
+								},
+								{
+									Name:  "node.name",
+									Value: "$(NODE_NAME)." + "growi-es-service-" + growi.Name + "." + growi.Spec.Elasticsearch_namespace + ".svc.cluster.local",
+								},
+								{
+									Name:  "cluster.name",
+									Value: elasticsearch_statefulset.Name,
+								},
+								{
+									Name:  "discovery.seed_hosts",
+									Value: allNodes,
+								},
+								{
+									Name:  "cluster.initial_master_nodes",
+									Value: nodes[0],
+								},
 								{
 									Name:  "network.host",
 									Value: "0.0.0.0",
@@ -518,12 +562,16 @@ func (r *GrowiReconciler) CreateOrUpdateElasticsearchStatefulSet(ctx context.Con
 									Value: "false",
 								},
 								{
+									Name:  "xpack.security.enabled",
+									Value: "false",
+								},
+								{
 									Name:  "bootstrap.memory_lock",
-									Value: "true",
+									Value: "false",
 								},
 								{
 									Name:  "ES_JAVA_OPTS",
-									Value: "-Xms256m -Xmx256m",
+									Value: "-Xms512m -Xmx512m",
 								},
 								{
 									Name:  "LOG4J_FORMAT_MSG_NO_LOOKUPS",
@@ -597,6 +645,12 @@ func (r *GrowiReconciler) CreateOrUpdateElasticsearchService(ctx context.Context
 					Protocol:   corev1.ProtocolTCP,
 					Port:       9200,
 					TargetPort: intstr.FromInt(9200),
+				},
+				{
+					Name:       "transport",
+					Protocol:   corev1.ProtocolTCP,
+					Port:       9300,
+					TargetPort: intstr.FromInt(9300),
 				},
 			},
 		}
