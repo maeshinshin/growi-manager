@@ -1,0 +1,32 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: manager-role
+rules:
+- apiGroups:
+  - app.maeshinshin.github.io
+  resources:
+  - growis
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - app.maeshinshin.github.io
+  resources:
+  - growis/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - app.maeshinshin.github.io
+  resources:
+  - growis/status
+  verbs:
+  - get
+  - patch
+  - update
