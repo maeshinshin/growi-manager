@@ -27,6 +27,16 @@ import (
 	appv1 "github.com/maeshinshin/growi-manager/api/v1"
 )
 
+// Status of Growi resource
+type GrowiStatus string
+
+const (
+	GrowiConditionAvailable               GrowiStatus = "Available"
+	GrowiConditionProgressing             GrowiStatus = "Progressing"
+	GrowiConditionDegraded                GrowiStatus = "Degraded"
+	GrowiConditionReconciliationSucceeded GrowiStatus = "ReconciliationSucceeded"
+)
+
 // GrowiReconciler reconciles a Growi object
 type GrowiReconciler struct {
 	client.Client
