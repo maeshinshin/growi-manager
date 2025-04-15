@@ -23,42 +23,42 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// GrowiAppSpec difines the desired state of GrowiApp
+// GrowiAppSpec difines the desired state of GrowiApp.
 type GrowiAppSpec struct {
 	// Version is the version of GrowiApp
 	// +kubebuilder:default="latest"
 	// +optional
 	Version string `json:"version,omitempty"`
 
-	// Repicas is the number of GrowiApp
+	// Repicas is the number of GrowiApp.
 	// +kubebuilder:default=1
 	// +kubebuilder:validation:MinPropates=1
 	// +optional
 	Repicas int `json:"replicas,omitempty"`
 }
 
-// MongoDBSpec difines the desired state of MongoDB
+// MongoDBSpec difines the desired state of MongoDB.
 type MongoDBSpec struct {
-	// Version is the version of MongoDB
+	// Version is the version of MongoDB.
 	// +kubebuilder:default="6.0"
 	// +optional
 	Version string `json:"version,omitempty"`
 
-	// Repicas is the number of MongoDB
+	// Repicas is the number of MongoDB.
 	// +kubebuilder:default=1
 	// +kubebuilder:validation:MinPropates=1
 	// +optional
 	Repicas int `json:"replicas,omitempty"`
 }
 
-// ElasticSearchSpec difines the desired state of ElasticSearch
+// ElasticSearchSpec difines the desired state of ElasticSearch.
 type ElasticSearchSpec struct {
-	// Version is the version of ElasticSearch
+	// Version is the version of ElasticSearch,
 	// +kubebuilder:default="8.7.0"
 	// +optional
 	Version string `json:"version,omitempty"`
 
-	// Repicas is the number of ElasticSearch
+	// Repicas is the number of ElasticSearch.
 	// +kubebuilder:default=1
 	// +kubebuilder:validation:MinPropates=1
 	// +optional
@@ -70,19 +70,19 @@ type GrowiSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// DefaultStorageClass is the default of the StrageClass
+	// StorageClass for store data.
 	// +kubebuilder:validation:Required
-	DefaultStorageClass string `json:"defaultstorageclass"`
+	StorageClass string `json:"storageclass"`
 
 	// GrowiAppSpec is the desired state of GrowiApp.
 	// +kubebuilder:validation:Required
 	GrowiAppSpec GrowiAppSpec `json:"growiappspec"`
 
-	// MongoDBSpec is the desired state of MongoDB
+	// MongoDBSpec is the desired state of MongoDB.
 	// +kubebuilder:validation:Required
 	MongoDBSpec MongoDBSpec `json:"mongodbspec"`
 
-	// ElasticSearchSpec is the desired state of ElasticSearch
+	// ElasticSearchSpec is the desired state of ElasticSearch.
 	// +kubebuilder:validation:Required
 	ElasticSearchSpec ElasticSearchSpec `json:"elasticsearchspec"`
 }
@@ -95,7 +95,7 @@ type GrowiStatus struct {
 	// +optional
 	Conditions []metav1.Condition `json:"conditions,omitempty"`
 
-	// CurrentCondition stores the type of the condition whose status is currently True (for display purposes)
+	// CurrentCondition stores the type of the condition whose status is currently True (for display purposes).
 	// +optional
 	CurrentCondition string `json:"currentcondition,omitempty"`
 }

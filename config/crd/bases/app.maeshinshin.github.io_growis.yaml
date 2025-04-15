@@ -43,19 +43,16 @@ spec:
           spec:
             description: GrowiSpec defines the desired state of Growi.
             properties:
-              defaultstorageclass:
-                description: DefaultStorageClass is the default of the StrageClass
-                type: string
               elasticsearchspec:
-                description: ElasticSearchSpec is the desired state of ElasticSearch
+                description: ElasticSearchSpec is the desired state of ElasticSearch.
                 properties:
                   replicas:
                     default: 1
-                    description: Repicas is the number of ElasticSearch
+                    description: Repicas is the number of ElasticSearch.
                     type: integer
                   version:
                     default: 8.7.0
-                    description: Version is the version of ElasticSearch
+                    description: Version is the version of ElasticSearch,
                     type: string
                 type: object
               growiappspec:
@@ -63,7 +60,7 @@ spec:
                 properties:
                   replicas:
                     default: 1
-                    description: Repicas is the number of GrowiApp
+                    description: Repicas is the number of GrowiApp.
                     type: integer
                   version:
                     default: latest
@@ -71,22 +68,25 @@ spec:
                     type: string
                 type: object
               mongodbspec:
-                description: MongoDBSpec is the desired state of MongoDB
+                description: MongoDBSpec is the desired state of MongoDB.
                 properties:
                   replicas:
                     default: 1
-                    description: Repicas is the number of MongoDB
+                    description: Repicas is the number of MongoDB.
                     type: integer
                   version:
                     default: "6.0"
-                    description: Version is the version of MongoDB
+                    description: Version is the version of MongoDB.
                     type: string
                 type: object
+              storageclass:
+                description: StorageClass for store data.
+                type: string
             required:
-            - defaultstorageclass
             - elasticsearchspec
             - growiappspec
             - mongodbspec
+            - storageclass
             type: object
           status:
             description: GrowiStatus defines the observed state of Growi.
@@ -154,7 +154,7 @@ spec:
                 x-kubernetes-list-type: map
               currentcondition:
                 description: CurrentCondition stores the type of the condition whose
-                  status is currently True (for display purposes)
+                  status is currently True (for display purposes).
                 type: string
             type: object
         type: object
