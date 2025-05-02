@@ -54,7 +54,8 @@ spec:
                 properties:
                   replicas:
                     default: 3
-                    description: Repicas is the number of ElasticSearch.
+                    description: Replicas is the number of ElasticSearch.
+                    format: int32
                     type: integer
                   version:
                     default: 8.7.0
@@ -66,7 +67,8 @@ spec:
                 properties:
                   replicas:
                     default: 1
-                    description: Repicas is the number of GrowiApp.
+                    description: Replicas is the number of GrowiApp.
+                    format: int32
                     type: integer
                   version:
                     default: 7.2.2
@@ -78,7 +80,8 @@ spec:
                 properties:
                   replicas:
                     default: 3
-                    description: Repicas is the number of MongoDB.
+                    description: Replicas is the number of MongoDB.
+                    format: int32
                     type: integer
                   version:
                     default: "6.0"

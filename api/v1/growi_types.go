@@ -30,11 +30,11 @@ type GrowiAppSpec struct {
 	// +optional
 	Version string `json:"version,omitempty"`
 
-	// Repicas is the number of GrowiApp.
+	// Replicas is the number of GrowiApp.
 	// +kubebuilder:default=1
 	// +kubebuilder:validation:MinPropates=1
 	// +optional
-	Repicas int `json:"replicas,omitempty"`
+	Replicas int32 `json:"replicas,omitempty"`
 }
 
 // MongoDBSpec difines the desired state of MongoDB.
@@ -44,11 +44,11 @@ type MongoDBSpec struct {
 	// +optional
 	Version string `json:"version,omitempty"`
 
-	// Repicas is the number of MongoDB.
+	// Replicas is the number of MongoDB.
 	// +kubebuilder:default=3
 	// +kubebuilder:validation:MinPropates=1
 	// +optional
-	Repicas int `json:"replicas,omitempty"`
+	Replicas int32 `json:"replicas,omitempty"`
 }
 
 // ElasticSearchSpec difines the desired state of ElasticSearch.
@@ -58,11 +58,11 @@ type ElasticSearchSpec struct {
 	// +optional
 	Version string `json:"version,omitempty"`
 
-	// Repicas is the number of ElasticSearch.
+	// Replicas is the number of ElasticSearch.
 	// +kubebuilder:default=3
 	// +kubebuilder:validation:MinPropates=1
 	// +optional
-	Repicas int `json:"replicas,omitempty"`
+	Replicas int32 `json:"replicas,omitempty"`
 }
 
 // GrowiSpec defines the desired state of Growi.
