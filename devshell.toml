@@ -1,0 +1,24 @@
+[[commands]]
+package = "ctlptl"
+
+[[commands]]
+package = "go"
+
+[[commands]]
+package = "gotest"
+
+[[commands]]
+name = "make"
+package = "gnumake"
+
+[[commands]]
+package = "tilt"
+
+[[commands]]
+package = "kind"
+
+[[commands]]
+package = "kubectl"
+
+[[commands]]
+package = "kubebuilder"
