@@ -6,4 +6,13 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
   name: growi-sample
 spec:
-  # TODO(user): Add fields here
+  growiappspec:
+    version: "7.2.2"
+    replicas: 1
+  mongodbspec:
+    version: "6.0"
+    replicas: 1
+  elasticsearchspec:
+    version: "8.7.0"
+    replicas: 1
+  storageclass: standard
