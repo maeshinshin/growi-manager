@@ -1,15 +1,23 @@
 package v1
 
 const (
-	SettingGrowiApp       GrowiStatusType = "Setting"
-	ReadyGrowiApp         GrowiStatusType = "Ready"
-	FailedtoStartGrowiApp GrowiStatusType = "FailedToStart"
+	WaitingOtherProcessMongoDBSecret MongoDBSecretStatusType = "WaitingOtherProcess"
+	CreatingMongoDBSecret            MongoDBSecretStatusType = "Creating"
+	ExistMongoDBSecret               MongoDBSecretStatusType = "Exist"
+	FailedtoCreateMongoDBSecret      MongoDBSecretStatusType = "FailedtoCreate"
 
-	SettingMongoDB       MongoDBStatusType = "Setting"
-	ReadyMongoDB         MongoDBStatusType = "Ready"
-	FailedtoStartMongoDB MongoDBStatusType = "FailedToStart"
+	WaitingOtherProcessGrowiApp GrowiAppStatusType = "WaitingOtherProcess"
+	StartingGrowiApp            GrowiAppStatusType = "Starting"
+	RunningGrowiApp             GrowiAppStatusType = "Running"
+	FailedtoStartGrowiApp       GrowiAppStatusType = "FailedToStart"
 
-	SettingElasticSearch       ElasticSearchStatusType = "Setting"
-	ReadyElasticSearch         ElasticSearchStatusType = "Ready"
-	FailedtoStartElasticSearch ElasticSearchStatusType = "FailedToStart"
+	WaitingOtherProcessMongoDB MongoDBStatusType = "WaitingOtherProcess"
+	StartingMongoDB            MongoDBStatusType = "Starting"
+	RunningMongoDB             MongoDBStatusType = "Running"
+	FailedtoStartMongoDB       MongoDBStatusType = "FailedToStart"
+
+	WaitingOtherProcessElasticSearch ElasticSearchStatusType = "WaitingOtherProcess"
+	StartingElasticSearch            ElasticSearchStatusType = "Starting"
+	RunningElasticSearch             ElasticSearchStatusType = "Running"
+	FailedtoStartElasticSearch       ElasticSearchStatusType = "FailedToStart"
 )

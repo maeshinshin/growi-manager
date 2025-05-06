@@ -15,6 +15,9 @@ spec:
   scope: Namespaced
   versions:
   - additionalPrinterColumns:
+    - jsonPath: .status.mongodbsecretstatus
+      name: MongoDBSecret
+      type: string
     - jsonPath: .status.growiappstatus
       name: GrowiApp
       type: string
@@ -164,8 +167,11 @@ spec:
               elasticsearchstatus:
                 description: ElasticSearchStatus is the status of ElasticSearch.
                 type: string
-              grrowiappstatus:
+              growiappstatus:
                 description: GrowiAppStatus is the status of GrowiApp.
+                type: string
+              mongodbsecretstatus:
+                description: MongoDBSecretStatus is the status of MongoDB secret.
                 type: string
               mongodbstatus:
                 description: MongoDBStatus is the status of MongoDB.

@@ -19,22 +19,16 @@ package controller
 import (
 	"context"
 
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/utils/ptr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
-	appv1 "github.com/maeshinshin/growi-manager/api/v1"
-)
-
-// Status of Growi resource
-type GrowiStatus string
-
-const (
-	GrowiConditionAvailable               GrowiStatus = "Available"
-	GrowiConditionProgressing             GrowiStatus = "Progressing"
-	GrowiConditionDegraded                GrowiStatus = "Degraded"
-	GrowiConditionReconciliationSucceeded GrowiStatus = "ReconciliationSucceeded"
+	growiv1 "github.com/maeshinshin/growi-manager/api/v1"
 )
 
 // GrowiReconciler reconciles a Growi object
@@ -43,6 +37,8 @@ type GrowiReconciler struct {
 	Scheme *runtime.Scheme
 }
 
+// +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=core,resources=secrets,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=app.maeshinshin.github.io,resources=growis,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=app.maeshinshin.github.io,resources=growis/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=app.maeshinshin.github.io,resources=growis/finalizers,verbs=update
@@ -57,9 +53,34 @@ type GrowiReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.20.4/pkg/reconcile
 func (r *GrowiReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = logf.FromContext(ctx)
+	logger := logf.FromContext(ctx)
 
-	// TODO(user): your logic here
+	// Fetch the Growi instance
+	var growi growiv1.Growi
+	if err := client.IgnoreNotFound(r.Get(ctx, req.NamespacedName, &growi)); err != nil {
+		logger.Error(err, "unable to fetch Growi")
+		return ctrl.Result{}, err
+	}
+
+	// Update status if not set
+	if growi.Status.MongoDBSecretStatus == nil {
+		growi.Status.MongoDBSecretStatus = ptr.To(growiv1.WaitingOtherProcessMongoDBSecret)
+	}
+	if growi.Status.GrowiAppStatus == nil {
+		growi.Status.GrowiAppStatus = ptr.To(growiv1.WaitingOtherProcessGrowiApp)
+	}
+	if growi.Status.MongoDBStatus == nil {
+		growi.Status.MongoDBStatus = ptr.To(growiv1.WaitingOtherProcessMongoDB)
+	}
+	if growi.Status.ElasticSearchStatus == nil {
+		growi.Status.ElasticSearchStatus = ptr.To(growiv1.WaitingOtherProcessElasticSearch)
+	}
+
+	// Reconcile MongoDB secret
+	if err := r.reconcileMongoDBSecret(ctx, growi); err != nil {
+		logger.Error(err, "unable to reconcile MongoDB secret")
+		return ctrl.Result{}, err
+	}
 
 	return ctrl.Result{}, nil
 }
@@ -67,7 +88,9 @@ func (r *GrowiReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 // SetupWithManager sets up the controller with the Manager.
 func (r *GrowiReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&appv1.Growi{}).
+		For(&growiv1.Growi{}).WithEventFilter(&predicate.GenerationChangedPredicate{}).
+		Owns(&corev1.Secret{}).
+		Owns(&appsv1.Deployment{}).
 		Named("growi").
 		Complete(r)
 }

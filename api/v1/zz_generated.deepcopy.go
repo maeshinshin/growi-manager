@@ -142,9 +142,14 @@ func (in *GrowiStatus) DeepCopyInto(out *GrowiStatus) {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
+	if in.MongoDBSecretStatus != nil {
+		in, out := &in.MongoDBSecretStatus, &out.MongoDBSecretStatus
+		*out = new(MongoDBSecretStatusType)
+		**out = **in
+	}
 	if in.GrowiAppStatus != nil {
 		in, out := &in.GrowiAppStatus, &out.GrowiAppStatus
-		*out = new(GrowiStatusType)
+		*out = new(GrowiAppStatusType)
 		**out = **in
 	}
 	if in.MongoDBStatus != nil {

@@ -18,14 +18,15 @@ package controller
 
 import (
 	"context"
+	"fmt"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	appv1 "github.com/maeshinshin/growi-manager/api/v1"
 )
@@ -33,25 +34,52 @@ import (
 var _ = Describe("Growi Controller", func() {
 	Context("When reconciling a resource", func() {
 		const resourceName = "test-resource"
+		const namespaceName = "test-namespace"
 
 		ctx := context.Background()
 
 		typeNamespacedName := types.NamespacedName{
 			Name:      resourceName,
-			Namespace: "default", // TODO(user):Modify as needed
+			Namespace: namespaceName,
 		}
 		growi := &appv1.Growi{}
 
 		BeforeEach(func() {
+			By("Creating the test namespace")
+			namespace := &corev1.Namespace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: namespaceName,
+				},
+			}
+			err := k8sClient.Create(ctx, namespace)
+			Expect(err).NotTo(HaveOccurred())
+
+			By("Existing the test namespace")
+			err = k8sClient.Get(ctx, types.NamespacedName{Name: namespaceName}, namespace)
+			Expect(err).NotTo(HaveOccurred())
 			By("creating the custom resource for the Kind Growi")
-			err := k8sClient.Get(ctx, typeNamespacedName, growi)
+			err = k8sClient.Get(ctx, typeNamespacedName, growi)
 			if err != nil && errors.IsNotFound(err) {
 				resource := &appv1.Growi{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      resourceName,
-						Namespace: "default",
+						Namespace: namespaceName,
 					},
-					// TODO(user): Specify other spec details if needed.
+					Spec: appv1.GrowiSpec{
+						GrowiAppSpec: appv1.GrowiAppSpec{
+							Version:  "7.2.2",
+							Replicas: 1,
+						},
+						MongoDBSpec: appv1.MongoDBSpec{
+							Version:  "6.0",
+							Replicas: 1,
+						},
+						ElasticSearchSpec: appv1.ElasticSearchSpec{
+							Version:  "8.7.0",
+							Replicas: 1,
+						},
+						StorageClass: "standard",
+					},
 				}
 				Expect(k8sClient.Create(ctx, resource)).To(Succeed())
 			}
@@ -66,6 +94,7 @@ var _ = Describe("Growi Controller", func() {
 			By("Cleanup the specific resource instance Growi")
 			Expect(k8sClient.Delete(ctx, resource)).To(Succeed())
 		})
+
 		It("should successfully reconcile the resource", func() {
 			By("Reconciling the created resource")
 			controllerReconciler := &GrowiReconciler{
@@ -77,8 +106,28 @@ var _ = Describe("Growi Controller", func() {
 				NamespacedName: typeNamespacedName,
 			})
 			Expect(err).NotTo(HaveOccurred())
-			// TODO(user): Add more specific assertions depending on your controller's reconciliation logic.
-			// Example: If you expect a certain status condition after reconciliation, verify it here.
+
+			By("Status MongoDBSecret status should be set to Exists")
+			Eventually(func() error {
+				growi = &appv1.Growi{}
+				err = k8sClient.Get(ctx, typeNamespacedName, growi)
+				if err != nil {
+					return err
+				}
+				if *growi.Status.MongoDBSecretStatus == appv1.ExistMongoDBSecret {
+					return nil
+				}
+				return fmt.Errorf("MongoDBSecret status is not set to Exists")
+			}).Should(Succeed())
+
+			By("MongoDBSecret should be created")
+			mongoDBSecret := corev1.Secret{}
+			err = k8sClient.Get(ctx, types.NamespacedName{Name: getMongoDBSecretName(appv1.Growi{ObjectMeta: metav1.ObjectMeta{Name: resourceName}}), Namespace: namespaceName}, &mongoDBSecret)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(mongoDBSecret.Name).To(Equal("test-resource-mongodb-secret"))
+			Expect(mongoDBSecret.Namespace).To(Equal(namespaceName))
+			Expect(mongoDBSecret.Data).To(HaveKey("MONGO_INITDB_ROOT_USERNAME"))
+			Expect(mongoDBSecret.Data).To(HaveKey("MONGO_INITDB_ROOT_PASSWORD"))
 		})
 	})
 })

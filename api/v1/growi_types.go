@@ -95,9 +95,13 @@ type GrowiStatus struct {
 	// +optional
 	Conditions []metav1.Condition `json:"conditions,omitempty"`
 
+	// MongoDBSecretStatus is the status of MongoDB secret.
+	// +optional
+	MongoDBSecretStatus *MongoDBSecretStatusType `json:"mongodbsecretstatus"`
+
 	// GrowiAppStatus is the status of GrowiApp.
 	// +optional
-	GrowiAppStatus *GrowiStatusType `json:"grrowiappstatus"`
+	GrowiAppStatus *GrowiAppStatusType `json:"growiappstatus"`
 
 	// MongoDBStatus is the status of MongoDB.
 	// +optional
@@ -109,13 +113,15 @@ type GrowiStatus struct {
 }
 
 type (
-	GrowiStatusType         string
+	MongoDBSecretStatusType string
+	GrowiAppStatusType      string
 	MongoDBStatusType       string
 	ElasticSearchStatusType string
 )
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
+// +kubebuilder:printcolumn:name="MongoDBSecret",type="string",JSONPath=.status.mongodbsecretstatus
 // +kubebuilder:printcolumn:name="GrowiApp",type="string",JSONPath=.status.growiappstatus
 // +kubebuilder:printcolumn:name="MongoDB",type="string",JSONPath=.status.mongodbstatus
 // +kubebuilder:printcolumn:name="ElasticSearch",type="string",JSONPath=.status.elasticsearchstatus
