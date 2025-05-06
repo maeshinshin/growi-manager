@@ -18,16 +18,16 @@ func getMongoDBSecretName(growi gmv1.Growi) string {
 	return fmt.Sprintf("%s-mongodb-secret", growi.Name)
 }
 
-func getMongoServiceName(growi gmv1.Growi) string {
+func getMongodbServiceName(growi gmv1.Growi) string {
 	return fmt.Sprintf("%s-mongodb-service", growi.Name)
 }
 
-func getMongoServiceFQDN(growi gmv1.Growi) string {
+func getMongodbServiceFQDN(growi gmv1.Growi) string {
 	return fmt.Sprintf("%s-mongodb-service.%s.svc.cluster.local", growi.Name, growi.Namespace)
 }
 
-func getMongoURI(growi gmv1.Growi, username, pass string) string {
-	return fmt.Sprintf("mongodb://%s:%s@%s:27017/growi?authSource=admin", username, pass, getMongoServiceFQDN(growi))
+func getMongodbURI(growi gmv1.Growi, username, pass string) string {
+	return fmt.Sprintf("mongodb://%s:%s@%s:27017/growi?authSource=admin", username, pass, getMongodbServiceFQDN(growi))
 }
 
 func getElasticSearchServiceName(growi gmv1.Growi) string {
