@@ -29,7 +29,6 @@ var _ = Describe("Growi Webhook", func() {
 		obj       *appv1.Growi
 		oldObj    *appv1.Growi
 		validator GrowiCustomValidator
-		defaulter GrowiCustomDefaulter
 	)
 
 	BeforeEach(func() {
@@ -37,8 +36,6 @@ var _ = Describe("Growi Webhook", func() {
 		oldObj = &appv1.Growi{}
 		validator = GrowiCustomValidator{}
 		Expect(validator).NotTo(BeNil(), "Expected validator to be initialized")
-		defaulter = GrowiCustomDefaulter{}
-		Expect(defaulter).NotTo(BeNil(), "Expected defaulter to be initialized")
 		Expect(oldObj).NotTo(BeNil(), "Expected oldObj to be initialized")
 		Expect(obj).NotTo(BeNil(), "Expected obj to be initialized")
 		// TODO (user): Add any setup logic common to all tests
@@ -46,19 +43,6 @@ var _ = Describe("Growi Webhook", func() {
 
 	AfterEach(func() {
 		// TODO (user): Add any teardown logic common to all tests
-	})
-
-	Context("When creating Growi under Defaulting Webhook", func() {
-		// TODO (user): Add logic for defaulting webhooks
-		// Example:
-		// It("Should apply defaults when a required field is empty", func() {
-		//     By("simulating a scenario where defaults should be applied")
-		//     obj.SomeFieldWithDefault = ""
-		//     By("calling the Default method to apply defaults")
-		//     defaulter.Default(ctx, obj)
-		//     By("checking that the default values are set")
-		//     Expect(obj.SomeFieldWithDefault).To(Equal("default_value"))
-		// })
 	})
 
 	Context("When creating or updating Growi under Validating Webhook", func() {

@@ -37,38 +37,10 @@ var growilog = logf.Log.WithName("growi-resource")
 func SetupGrowiWebhookWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewWebhookManagedBy(mgr).For(&appv1.Growi{}).
 		WithValidator(&GrowiCustomValidator{}).
-		WithDefaulter(&GrowiCustomDefaulter{}).
 		Complete()
 }
 
 // TODO(user): EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-
-// +kubebuilder:webhook:path=/mutate-app-maeshinshin-github-io-v1-growi,mutating=true,failurePolicy=fail,sideEffects=None,groups=app.maeshinshin.github.io,resources=growis,verbs=create;update,versions=v1,name=mgrowi-v1.kb.io,admissionReviewVersions=v1
-
-// GrowiCustomDefaulter struct is responsible for setting default values on the custom resource of the
-// Kind Growi when those are created or updated.
-//
-// NOTE: The +kubebuilder:object:generate=false marker prevents controller-gen from generating DeepCopy methods,
-// as it is used only for temporary operations and does not need to be deeply copied.
-type GrowiCustomDefaulter struct {
-	// TODO(user): Add more fields as needed for defaulting
-}
-
-var _ webhook.CustomDefaulter = &GrowiCustomDefaulter{}
-
-// Default implements webhook.CustomDefaulter so a webhook will be registered for the Kind Growi.
-func (d *GrowiCustomDefaulter) Default(ctx context.Context, obj runtime.Object) error {
-	growi, ok := obj.(*appv1.Growi)
-
-	if !ok {
-		return fmt.Errorf("expected an Growi object but got %T", obj)
-	}
-	growilog.Info("Defaulting for Growi", "name", growi.GetName())
-
-	// TODO(user): fill in your defaulting logic.
-
-	return nil
-}
 
 // TODO(user): change verbs to "verbs=create;update;delete" if you want to enable deletion validation.
 // NOTE: The 'path' attribute must follow a specific pattern and should not be modified directly here.

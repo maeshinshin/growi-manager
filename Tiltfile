@@ -15,13 +15,15 @@ def generate():
     return './bin/controller-gen object:headerFile="hack/boilerplate.go.txt" paths="./..."'
 
 def docker_build_and_load():
+    def build():
+        return 'make build'
     def docker_build():
         return 'make docker-build'
     def kind_load():
         return 'kind load docker-image controller:latest'
     def restart():
         return 'kubectl rollout restart deployment growi-manager-controller-manager -n growi-manager-system'
-    return docker_build() + '&&' + kind_load() + '&&' + restart()
+    return build() + '&&' + docker_build() + '&&' + kind_load() + '&&' + restart()
     
 # Deploy Cert Manager
 deploy_cert_manager(version='1.17.1')

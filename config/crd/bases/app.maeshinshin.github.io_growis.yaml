@@ -15,8 +15,17 @@ spec:
   scope: Namespaced
   versions:
   - additionalPrinterColumns:
-    - jsonPath: .status.currentcondition
-      name: Status
+    - jsonPath: .status.mongodbsecretstatus
+      name: MongoDBSecret
+      type: string
+    - jsonPath: .status.growiappstatus
+      name: GrowiApp
+      type: string
+    - jsonPath: .status.mongodbstatus
+      name: MongoDB
+      type: string
+    - jsonPath: .status.elasticsearchstatus
+      name: ElasticSearch
       type: string
     name: v1
     schema:
@@ -47,8 +56,9 @@ spec:
                 description: ElasticSearchSpec is the desired state of ElasticSearch.
                 properties:
                   replicas:
-                    default: 1
-                    description: Repicas is the number of ElasticSearch.
+                    default: 3
+                    description: Replicas is the number of ElasticSearch.
+                    format: int32
                     type: integer
                   version:
                     default: 8.7.0
@@ -60,10 +70,11 @@ spec:
                 properties:
                   replicas:
                     default: 1
-                    description: Repicas is the number of GrowiApp.
+                    description: Replicas is the number of GrowiApp.
+                    format: int32
                     type: integer
                   version:
-                    default: latest
+                    default: 7.2.2
                     description: Version is the version of GrowiApp
                     type: string
                 type: object
@@ -71,8 +82,9 @@ spec:
                 description: MongoDBSpec is the desired state of MongoDB.
                 properties:
                   replicas:
-                    default: 1
-                    description: Repicas is the number of MongoDB.
+                    default: 3
+                    description: Replicas is the number of MongoDB.
+                    format: int32
                     type: integer
                   version:
                     default: "6.0"
@@ -152,9 +164,17 @@ spec:
                 x-kubernetes-list-map-keys:
                 - type
                 x-kubernetes-list-type: map
-              currentcondition:
-                description: CurrentCondition stores the type of the condition whose
-                  status is currently True (for display purposes).
+              elasticsearchstatus:
+                description: ElasticSearchStatus is the status of ElasticSearch.
+                type: string
+              growiappstatus:
+                description: GrowiAppStatus is the status of GrowiApp.
+                type: string
+              mongodbsecretstatus:
+                description: MongoDBSecretStatus is the status of MongoDB secret.
+                type: string
+              mongodbstatus:
+                description: MongoDBStatus is the status of MongoDB.
                 type: string
             type: object
         type: object
