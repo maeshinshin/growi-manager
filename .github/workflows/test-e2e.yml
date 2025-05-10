@@ -12,24 +12,20 @@ jobs:
       - name: Clone the code
         uses: actions/checkout@v4
 
-      - name: Setup Go
-        uses: actions/setup-go@v5
+      - uses: cachix/install-nix-action@v31
         with:
-          go-version-file: go.mod
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Install the latest version of kind
-        run: |
-          curl -Lo ./kind https://kind.sigs.k8s.io/dl/latest/kind-linux-amd64
-          chmod +x ./kind
-          sudo mv ./kind /usr/local/bin/kind
+      - name: Nix Flake
+        run: nix flake check
 
       - name: Verify kind installation
-        run: kind version
+        run: nix develop --command kind version
 
       - name: Create kind cluster
-        run: kind create cluster
+        run: nix develop --command kind create cluster
 
       - name: Running Test e2e
         run: |
-          go mod tidy
-          make test-e2e
+          nix develop --command go mod tidy
+          nix develop --command make test-e2e
