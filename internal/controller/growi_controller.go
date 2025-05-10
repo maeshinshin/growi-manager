@@ -77,7 +77,11 @@ func (r *GrowiReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 	// Check if the Growi instance is marked for deletion
 	if !growi.ObjectMeta.DeletionTimestamp.IsZero() {
 		logger.Info("Growi is being deleted")
-		r.deleteFinalizer(ctx, &growi)
+		if err := r.deleteFinalizer(ctx, &growi); err != nil {
+			logger.Error(err, "unable to remove finalizer")
+			return ctrl.Result{}, err
+		}
+		logger.Info("Finalizer removed")
 		return ctrl.Result{}, nil
 	}
 

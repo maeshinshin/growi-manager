@@ -24,7 +24,8 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -40,11 +41,13 @@ import (
 // http://onsi.github.io/ginkgo/ to learn more about Ginkgo.
 
 var (
-	ctx       context.Context
-	cancel    context.CancelFunc
-	testEnv   *envtest.Environment
-	cfg       *rest.Config
-	k8sClient client.Client
+	ctx               context.Context
+	cancel            context.CancelFunc
+	testEnv           *envtest.Environment
+	cfg               *rest.Config
+	k8sClient         client.Client
+	testNamespace     *corev1.Namespace
+	testNamespaceName = "test-namespace"
 )
 
 func TestControllers(t *testing.T) {
@@ -83,6 +86,14 @@ var _ = BeforeSuite(func() {
 	k8sClient, err = client.New(cfg, client.Options{Scheme: scheme.Scheme})
 	Expect(err).NotTo(HaveOccurred())
 	Expect(k8sClient).NotTo(BeNil())
+	By("Creating the test namespace")
+	namespace := &corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: testNamespaceName,
+		},
+	}
+	err = k8sClient.Create(ctx, namespace)
+	Expect(err).NotTo(HaveOccurred())
 })
 
 var _ = AfterSuite(func() {
