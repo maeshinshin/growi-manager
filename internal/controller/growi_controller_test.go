@@ -53,6 +53,16 @@ var _ = Describe("Growi Controller", func() {
 			),
 			Namespace: testNamespaceName,
 		}
+		mongoDBSecretTypeNamespcedName := types.NamespacedName{
+			Name: getMongoDBSecretName(
+				appv1.Growi{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: resourceName,
+					},
+				},
+			),
+			Namespace: namespaceName,
+		}
 		growi := &appv1.Growi{}
 		mongoDBSecret := &corev1.Secret{}
 
