@@ -12,12 +12,14 @@ jobs:
       - name: Clone the code
         uses: actions/checkout@v4
 
-      - name: Setup Go
-        uses: actions/setup-go@v5
+      - uses: cachix/install-nix-action@v31
         with:
-          go-version-file: go.mod
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Nix Flake
+        run: nix flake check
 
       - name: Running Tests
         run: |
-          go mod tidy
-          make test
+          nix develop --command go mod tidy
+          nix develop --command make test

@@ -18,13 +18,19 @@ package controller
 
 import (
 	"context"
+	"reflect"
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/utils/ptr"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"sigs.k8s.io/controller-runtime/pkg/event"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
@@ -54,15 +60,39 @@ type GrowiReconciler struct {
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.20.4/pkg/reconcile
 func (r *GrowiReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := logf.FromContext(ctx)
+	logger.Info("Reconciling Growi", "name", req.Name, "namespace", req.Namespace)
 
 	// Fetch the Growi instance
 	var growi growiv1.Growi
-	if err := client.IgnoreNotFound(r.Get(ctx, req.NamespacedName, &growi)); err != nil {
-		logger.Error(err, "unable to fetch Growi")
+	if err := r.Get(ctx, req.NamespacedName, &growi); err != nil {
+		if apierrors.IsNotFound(err) {
+			logger.Info("Growi resource not found. Ignoring since object must be deleted")
+			return ctrl.Result{}, nil
+		} else {
+			logger.Error(err, "unable to fetch Growi")
+			return ctrl.Result{}, err
+		}
+	}
+
+	// Check if the Growi instance is marked for deletion
+	if !growi.ObjectMeta.DeletionTimestamp.IsZero() {
+		logger.Info("Growi is being deleted")
+		if err := r.deleteFinalizer(ctx, &growi); err != nil {
+			logger.Error(err, "unable to remove finalizer")
+			return ctrl.Result{}, err
+		}
+		logger.Info("Finalizer removed")
+		return ctrl.Result{}, nil
+	}
+
+	// Add finalizer if not present
+	if err := r.addFinalizer(ctx, &growi); err != nil {
+		logger.Error(err, "unable to add finalizer")
 		return ctrl.Result{}, err
 	}
 
 	// Update status if not set
+	old := growi.DeepCopy()
 	if growi.Status.MongoDBSecretStatus == nil {
 		growi.Status.MongoDBSecretStatus = ptr.To(growiv1.WaitingOtherProcessMongoDBSecret)
 	}
@@ -76,8 +106,16 @@ func (r *GrowiReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 		growi.Status.ElasticSearchStatus = ptr.To(growiv1.WaitingOtherProcessElasticSearch)
 	}
 
+	// update status
+	if reflect.DeepEqual(old.Status, growi.Status) {
+		if err := r.Status().Update(ctx, &growi); err != nil {
+			logger.Error(err, "unable to update Growi status")
+			return ctrl.Result{}, err
+		}
+	}
+
 	// Reconcile MongoDB secret
-	if err := r.reconcileMongoDBSecret(ctx, growi); err != nil {
+	if err := r.reconcileMongoDBSecret(ctx, &growi); err != nil {
 		logger.Error(err, "unable to reconcile MongoDB secret")
 		return ctrl.Result{}, err
 	}
@@ -85,11 +123,73 @@ func (r *GrowiReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 	return ctrl.Result{}, nil
 }
 
+func (r *GrowiReconciler) addFinalizer(ctx context.Context, growi *growiv1.Growi) error {
+	logger := logf.FromContext(ctx)
+	if !controllerutil.ContainsFinalizer(growi, FINALIZER_NAME) {
+		logger.Info("Adding finalizer for the Growi")
+		controllerutil.AddFinalizer(growi, FINALIZER_NAME)
+	}
+	if err := r.Update(ctx, growi); err != nil {
+		logger.Error(err, "unable to update Growi with finalizer")
+		return err
+	}
+	return nil
+}
+
+func (r *GrowiReconciler) deleteFinalizer(ctx context.Context, growi *growiv1.Growi) error {
+	logger := logf.FromContext(ctx)
+	if controllerutil.ContainsFinalizer(growi, FINALIZER_NAME) {
+		logger.Info("Removing finalizer for the Growi")
+		controllerutil.RemoveFinalizer(growi, FINALIZER_NAME)
+	}
+	if err := r.Update(ctx, growi); err != nil {
+		logger.Error(err, "unable to update Growi with finalizer")
+		return err
+	}
+	return nil
+}
+
 // SetupWithManager sets up the controller with the Manager.
 func (r *GrowiReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&growiv1.Growi{}).WithEventFilter(&predicate.GenerationChangedPredicate{}).
-		Owns(&corev1.Secret{}).
+		For(
+			&growiv1.Growi{},
+			builder.WithPredicates(
+				predicate.Or(
+					predicate.Not(
+						predicate.ResourceVersionChangedPredicate{},
+					),
+					predicate.GenerationChangedPredicate{},
+				),
+			),
+		).
+		Watches(
+			&corev1.Secret{},
+			handler.EnqueueRequestsFromMapFunc(
+				func(ctx context.Context, obj client.Object) []ctrl.Request {
+					secret, ok := obj.(*corev1.Secret)
+					if !ok {
+						return nil
+					}
+					if secret.Labels["app.kubernetes.io/name"] == "growi" &&
+						secret.Labels["app.kubernetes.io/managed-by"] == "growi-manager" &&
+						secret.Labels["app.kubernetes.io/instance"] != "" {
+						return []ctrl.Request{
+							{
+								NamespacedName: client.ObjectKey{
+									Name:      secret.Labels["app.kubernetes.io/instance"],
+									Namespace: secret.Namespace,
+								},
+							},
+						}
+					}
+					return nil
+				},
+			),
+			builder.WithPredicates(predicate.Funcs{
+				CreateFunc: func(e event.CreateEvent) bool { return false },
+			}),
+		).
 		Owns(&appsv1.Deployment{}).
 		Named("growi").
 		Complete(r)
