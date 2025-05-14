@@ -43,8 +43,8 @@ var _ = Describe("Growi Controller", func() {
 			Name:      resourceName,
 			Namespace: testNamespaceName,
 		}
-		mongoDBSecretTypeNamespcedName := types.NamespacedName{
-			Name: getMongoDBSecretName(
+		mongodbSecretTypeNamespcedName := types.NamespacedName{
+			Name: getMongodbSecretName(
 				appv1.Growi{
 					ObjectMeta: metav1.ObjectMeta{
 						Name: resourceName,
@@ -54,7 +54,7 @@ var _ = Describe("Growi Controller", func() {
 			Namespace: testNamespaceName,
 		}
 		growi := &appv1.Growi{}
-		mongoDBSecret := &corev1.Secret{}
+		mongodbSecret := &corev1.Secret{}
 
 		BeforeEach(func() {
 			var err error
@@ -76,11 +76,11 @@ var _ = Describe("Growi Controller", func() {
 							Version:  "7.2.2",
 							Replicas: 1,
 						},
-						MongoDBSpec: appv1.MongoDBSpec{
+						MongodbSpec: appv1.MongodbSpec{
 							Version:  "6.0",
 							Replicas: 1,
 						},
-						ElasticSearchSpec: appv1.ElasticSearchSpec{
+						ElasticsearchSpec: appv1.ElasticsearchSpec{
 							Version:  "8.7.0",
 							Replicas: 1,
 						},
@@ -133,37 +133,24 @@ var _ = Describe("Growi Controller", func() {
 			})
 			Expect(err).NotTo(HaveOccurred())
 
-			By("Status MongoDBSecret status should be set to Exists")
-			Eventually(func() error {
-				growi = &appv1.Growi{}
-				err = k8sClient.Get(ctx, growiTypeNamespacedName, growi)
-				if err != nil {
-					return err
-				}
-				if *growi.Status.MongoDBSecretStatus == appv1.ExistMongoDBSecret {
-					return nil
-				}
-				return fmt.Errorf("MongoDBSecret status is not set to Exists")
-			}).Should(Succeed())
-
 			By("MongoDBSecret should be created")
-			mongoDBSecret = &corev1.Secret{}
-			err = k8sClient.Get(ctx, mongoDBSecretTypeNamespcedName, mongoDBSecret)
+			mongodbSecret = &corev1.Secret{}
+			err = k8sClient.Get(ctx, mongodbSecretTypeNamespcedName, mongodbSecret)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(mongoDBSecret.Name).To(Equal("test-resource-mongodb-secret"))
-			Expect(mongoDBSecret.Namespace).To(Equal(testNamespaceName))
-			Expect(mongoDBSecret.ObjectMeta.Labels).To(HaveKeyWithValue("app.kubernetes.io/name", "growi"))
-			Expect(mongoDBSecret.ObjectMeta.Labels).To(HaveKeyWithValue("app.kubernetes.io/instance", resourceName))
-			Expect(mongoDBSecret.ObjectMeta.Labels).To(HaveKeyWithValue("app.kubernetes.io/managed-by", "growi-manager"))
-			Expect(mongoDBSecret.GetManagedFields()).To(HaveLen(1))
-			Expect(mongoDBSecret.GetManagedFields()[0].Manager).To(Equal("growi-manager"))
-			Expect(mongoDBSecret.Data).To(HaveKey("MONGO_INITDB_ROOT_USERNAME"))
-			Expect(mongoDBSecret.Data).To(HaveKey("MONGO_INITDB_ROOT_PASSWORD"))
+			Expect(mongodbSecret.Name).To(Equal("test-resource-mongodb-secret"))
+			Expect(mongodbSecret.Namespace).To(Equal(testNamespaceName))
+			Expect(mongodbSecret.ObjectMeta.Labels).To(HaveKeyWithValue("app.kubernetes.io/name", "growi"))
+			Expect(mongodbSecret.ObjectMeta.Labels).To(HaveKeyWithValue("app.kubernetes.io/instance", resourceName))
+			Expect(mongodbSecret.ObjectMeta.Labels).To(HaveKeyWithValue("app.kubernetes.io/managed-by", FIELDMANAGER_NAME))
+			Expect(mongodbSecret.GetManagedFields()).To(HaveLen(1))
+			Expect(mongodbSecret.GetManagedFields()[0].Manager).To(Equal(FIELDMANAGER_NAME))
+			Expect(mongodbSecret.Data).To(HaveKey("MONGO_INITDB_ROOT_USERNAME"))
+			Expect(mongodbSecret.Data).To(HaveKey("MONGO_INITDB_ROOT_PASSWORD"))
 
 			By("Delete and recreate the MongoDBSecret")
-			Expect(k8sClient.Delete(ctx, mongoDBSecret)).To(Succeed())
-			mongoDBSecret = &corev1.Secret{}
-			err = k8sClient.Get(ctx, mongoDBSecretTypeNamespcedName, mongoDBSecret)
+			Expect(k8sClient.Delete(ctx, mongodbSecret)).To(Succeed())
+			mongodbSecret = &corev1.Secret{}
+			err = k8sClient.Get(ctx, mongodbSecretTypeNamespcedName, mongodbSecret)
 			Expect(apierrors.IsNotFound(err)).To(BeTrue())
 
 			_, err = controllerReconciler.Reconcile(ctx, reconcile.Request{
@@ -172,8 +159,8 @@ var _ = Describe("Growi Controller", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			Eventually(func() error {
-				mongoDBSecret = &corev1.Secret{}
-				err = k8sClient.Get(ctx, mongoDBSecretTypeNamespcedName, mongoDBSecret)
+				mongodbSecret = &corev1.Secret{}
+				err = k8sClient.Get(ctx, mongodbSecretTypeNamespcedName, mongodbSecret)
 				if err != nil {
 					return err
 				}
@@ -181,15 +168,15 @@ var _ = Describe("Growi Controller", func() {
 			}).Should(Succeed())
 
 			Expect(err).NotTo(HaveOccurred())
-			Expect(mongoDBSecret.Name).To(Equal("test-resource-mongodb-secret"))
-			Expect(mongoDBSecret.Namespace).To(Equal(testNamespaceName))
-			Expect(mongoDBSecret.ObjectMeta.Labels).To(HaveKeyWithValue("app.kubernetes.io/name", "growi"))
-			Expect(mongoDBSecret.ObjectMeta.Labels).To(HaveKeyWithValue("app.kubernetes.io/instance", resourceName))
-			Expect(mongoDBSecret.ObjectMeta.Labels).To(HaveKeyWithValue("app.kubernetes.io/managed-by", "growi-manager"))
-			Expect(mongoDBSecret.GetManagedFields()).To(HaveLen(1))
-			Expect(mongoDBSecret.GetManagedFields()[0].Manager).To(Equal("growi-manager"))
-			Expect(mongoDBSecret.Data).To(HaveKey("MONGO_INITDB_ROOT_USERNAME"))
-			Expect(mongoDBSecret.Data).To(HaveKey("MONGO_INITDB_ROOT_PASSWORD"))
+			Expect(mongodbSecret.Name).To(Equal("test-resource-mongodb-secret"))
+			Expect(mongodbSecret.Namespace).To(Equal(testNamespaceName))
+			Expect(mongodbSecret.ObjectMeta.Labels).To(HaveKeyWithValue("app.kubernetes.io/name", "growi"))
+			Expect(mongodbSecret.ObjectMeta.Labels).To(HaveKeyWithValue("app.kubernetes.io/instance", resourceName))
+			Expect(mongodbSecret.ObjectMeta.Labels).To(HaveKeyWithValue("app.kubernetes.io/managed-by", FIELDMANAGER_NAME))
+			Expect(mongodbSecret.GetManagedFields()).To(HaveLen(1))
+			Expect(mongodbSecret.GetManagedFields()[0].Manager).To(Equal(FIELDMANAGER_NAME))
+			Expect(mongodbSecret.Data).To(HaveKey("MONGO_INITDB_ROOT_USERNAME"))
+			Expect(mongodbSecret.Data).To(HaveKey("MONGO_INITDB_ROOT_PASSWORD"))
 
 			By("Deleting the custom resource")
 			Expect(k8sClient.Delete(ctx, growi)).To(Succeed())
@@ -208,10 +195,10 @@ var _ = Describe("Growi Controller", func() {
 			}).Should(Succeed())
 
 			By("MongoDBSecret should not be deleted")
-			oldMongoDBSecret := mongoDBSecret.DeepCopy()
-			err = k8sClient.Get(ctx, mongoDBSecretTypeNamespcedName, mongoDBSecret)
+			oldMongoDBSecret := mongodbSecret.DeepCopy()
+			err = k8sClient.Get(ctx, mongodbSecretTypeNamespcedName, mongodbSecret)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(reflect.DeepEqual(oldMongoDBSecret, mongoDBSecret)).To(BeTrue())
+			Expect(reflect.DeepEqual(oldMongoDBSecret, mongodbSecret)).To(BeTrue())
 		})
 	})
 })

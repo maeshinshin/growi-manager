@@ -37,7 +37,6 @@ import (
 	appv1 "github.com/maeshinshin/growi-manager/api/v1"
 	"github.com/maeshinshin/growi-manager/internal/controller"
 	webhookappv1 "github.com/maeshinshin/growi-manager/internal/webhook/v1"
-	// +kubebuilder:scaffold:imports
 )
 
 var (
