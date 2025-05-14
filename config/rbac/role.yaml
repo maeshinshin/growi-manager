@@ -7,7 +7,14 @@ rules:
 - apiGroups:
   - ""
   resources:
-  - configmaps
+  - persistentvolumeclaims
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
   - secrets
   - services
   verbs:
@@ -17,14 +24,6 @@ rules:
   - list
   - patch
   - update
-  - watch
-- apiGroups:
-  - ""
-  resources:
-  - persistentvolumeclaims
-  verbs:
-  - get
-  - list
   - watch
 - apiGroups:
   - app.maeshinshin.github.io

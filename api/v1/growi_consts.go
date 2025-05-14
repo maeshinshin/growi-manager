@@ -9,10 +9,10 @@ const (
 	WaitingOtherProcessMongodb MongodbStatusType = "WaitingOtherProcess"
 	StartingMongodb            MongodbStatusType = "Starting"
 	RunningMongodb             MongodbStatusType = "Running"
-	FailedtoCreateMongodb      MongodbStatusType = "FailedToStart"
+	FailedtoCreateMongodb      MongodbStatusType = "FailedToCreate"
 
 	WaitingOtherProcessElasticsearch ElasticsearchStatusType = "WaitingOtherProcess"
 	StartingElasticsearch            ElasticsearchStatusType = "Starting"
 	RunningElasticsearch             ElasticsearchStatusType = "Running"
-	FailedtoCreateElasticsearch      ElasticsearchStatusType = "FailedToStart"
+	FailedtoCreateElasticsearch      ElasticsearchStatusType = "FailedToCreate"
 )
