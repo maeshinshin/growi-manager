@@ -29,11 +29,12 @@ func (r GrowiReconciler) reconcileMongodbStatefulSet(ctx context.Context, growi 
 	mongodbHeadlessServiceName := getMongodbHeadlessServiceName(*growi)
 	mongodbStatefulsetLabels := getLabels(*growi, COMPONENT_MONGODB)
 	mongodbPersistentVolumeClaimName := getMongodbPersistentVolumeClaimName(*growi)
+	mongodbPersistentVolumeClaimNameOfZero := getMongodbPersistentVolumeClaimNameOfZero(*growi)
 
 	// Check if the MongoDB persistent volume claim already exists
 	currMongodbPVC := &corev1.PersistentVolumeClaim{}
 	err = r.Get(ctx, client.ObjectKey{
-		Name:      mongodbPersistentVolumeClaimName,
+		Name:      mongodbPersistentVolumeClaimNameOfZero,
 		Namespace: growi.Namespace,
 	}, currMongodbPVC)
 	if err != nil && !apierrors.IsNotFound(err) {
@@ -82,7 +83,7 @@ func (r GrowiReconciler) reconcileMongodbStatefulSet(ctx context.Context, growi 
 								WithInitContainers(
 									corev1apply.Container().
 										WithName("init-mongo-key").
-										WithImage(MONGODB_IMAGE).
+										WithImage(getMongodbImage(*growi)).
 										WithCommand(
 											"/bin/sh",
 											"-c",
@@ -107,7 +108,7 @@ func (r GrowiReconciler) reconcileMongodbStatefulSet(ctx context.Context, growi 
 								WithContainers(
 									corev1apply.Container().
 										WithName("mongodb").
-										WithImage(MONGODB_IMAGE).
+										WithImage(getMongodbImage(*growi)).
 										WithPorts(corev1apply.ContainerPort().
 											WithName("mongodb").
 											WithContainerPort(27017),
@@ -206,7 +207,7 @@ func (r GrowiReconciler) reconcileMongodbStatefulSet(ctx context.Context, growi 
 				).
 				WithVolumeClaimTemplates(
 					corev1apply.PersistentVolumeClaim(
-						getMongodbPersistentVolumeClaimName(*growi),
+						mongodbPersistentVolumeClaimName,
 						growi.Namespace,
 					).
 						WithLabels(mongodbStatefulsetLabels).

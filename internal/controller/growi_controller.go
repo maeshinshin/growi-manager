@@ -46,6 +46,7 @@ type GrowiReconciler struct {
 
 // +kubebuilder:rbac:groups=core,resources=services,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=core,resources=secrets,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=core,resources=configmaps,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=core,resources=persistentvolumeclaims,verbs=get;list;watch
 // +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=apps,resources=statefulsets,verbs=get;list;watch;create;update;patch;delete
@@ -121,6 +122,16 @@ func (r *GrowiReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 	if err := r.reconcileMongodb(ctx, &growi); err != nil {
 		if growi.Status.MongodbStatus != ptr.To(growiv1.FailedtoCreateMongodb) {
 			if err := r.updateMongodbStatus(ctx, &growi, growiv1.FailedtoCreateMongodb); err != nil {
+				return ctrl.Result{}, err
+			}
+		}
+		return ctrl.Result{}, err
+	}
+
+	// Reconcile Elasticsearch
+	if err := r.reconcileElasticsearch(ctx, &growi); err != nil {
+		if growi.Status.ElasticsearchStatus != ptr.To(growiv1.FailedtoCreateElasticsearch) {
+			if err := r.updateElasticsearchStatus(ctx, &growi, growiv1.FailedtoCreateElasticsearch); err != nil {
 				return ctrl.Result{}, err
 			}
 		}

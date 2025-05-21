@@ -14,5 +14,5 @@ const (
 	WaitingOtherProcessElasticsearch ElasticsearchStatusType = "WaitingOtherProcess"
 	StartingElasticsearch            ElasticsearchStatusType = "Starting"
 	RunningElasticsearch             ElasticsearchStatusType = "Running"
-	FailedtoStartElasticsearch       ElasticsearchStatusType = "FailedToStart"
+	FailedtoCreateElasticsearch      ElasticsearchStatusType = "FailedToStart"
 )

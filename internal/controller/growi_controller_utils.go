@@ -33,7 +33,7 @@ func (r GrowiReconciler) updateGrowiAppStatus(ctx context.Context, growi *growiv
 	return nil
 }
 
-func (r GrowiReconciler) updateElasticSearchStatus(ctx context.Context, growi *growiv1.Growi, status growiv1.ElasticsearchStatusType) error {
+func (r GrowiReconciler) updateElasticsearchStatus(ctx context.Context, growi *growiv1.Growi, status growiv1.ElasticsearchStatusType) error {
 	logger := logf.FromContext(ctx)
 
 	growi.Status.ElasticsearchStatus = ptr.To(status)
