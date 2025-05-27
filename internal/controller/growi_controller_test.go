@@ -38,8 +38,8 @@ import (
 
 var _ = Describe("Growi Controller", func() {
 	const (
-		timeout  = time.Second * 20       // 10秒待機
-		interval = time.Millisecond * 250 // 250ミリ秒ごとにチェック
+		timeout  = time.Second * 20
+		interval = time.Millisecond * 250
 	)
 	var (
 		testGrowi                        *growiappv1.Growi   = &growiappv1.Growi{}
