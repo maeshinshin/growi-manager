@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"time" // timeパッケージをインポート
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -28,47 +29,63 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	appv1 "github.com/maeshinshin/growi-manager/api/v1"
 )
 
+const (
+	timeout  = time.Second * 10       // 10秒待機
+	interval = time.Millisecond * 250 // 250ミリ秒ごとにチェック
+)
+
 var _ = Describe("Growi Controller", func() {
 	Context("When reconciling a resource", func() {
-		const resourceName = "test-resource"
-
 		ctx := context.Background()
 
+		namespaceTypeNamespacedName := types.NamespacedName{
+			Name: testNamespaceName,
+		}
+
 		growiTypeNamespacedName := types.NamespacedName{
-			Name:      resourceName,
+			Name:      testGrowiName,
 			Namespace: testNamespaceName,
 		}
+
 		mongodbSecretTypeNamespcedName := types.NamespacedName{
 			Name: getMongodbSecretName(
 				appv1.Growi{
 					ObjectMeta: metav1.ObjectMeta{
-						Name: resourceName,
+						Name: testGrowiName,
 					},
 				},
 			),
 			Namespace: testNamespaceName,
 		}
-		growi := &appv1.Growi{}
-		mongodbSecret := &corev1.Secret{}
+
+		mongodbStatefulSetTypeNamespacedName := types.NamespacedName{
+			Name: getMongodbStatefulSetName(
+				appv1.Growi{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: testGrowiName,
+					},
+				},
+			),
+			Namespace: testNamespaceName,
+		}
 
 		BeforeEach(func() {
 			var err error
 			By("Existing the test namespace")
 			namespace := &corev1.Namespace{}
-			err = k8sClient.Get(ctx, types.NamespacedName{Name: testNamespaceName}, namespace)
+			err = k8sClient.Get(ctx, namespaceTypeNamespacedName, namespace)
 			Expect(err).NotTo(HaveOccurred())
 
 			By("creating the custom resource for the Kind Growi")
-			err = k8sClient.Get(ctx, growiTypeNamespacedName, growi)
+			err = k8sClient.Get(ctx, growiTypeNamespacedName, testGrowi)
 			if err != nil && apierrors.IsNotFound(err) {
-				resource := &appv1.Growi{
+				testGrowi = &appv1.Growi{
 					ObjectMeta: metav1.ObjectMeta{
-						Name:      resourceName,
+						Name:      testGrowiName,
 						Namespace: testNamespaceName,
 					},
 					Spec: appv1.GrowiSpec{
@@ -78,16 +95,16 @@ var _ = Describe("Growi Controller", func() {
 						},
 						MongodbSpec: appv1.MongodbSpec{
 							Version:  "6.0",
-							Replicas: 1,
+							Replicas: 3,
 						},
 						ElasticsearchSpec: appv1.ElasticsearchSpec{
 							Version:  "8.7.0",
-							Replicas: 1,
+							Replicas: 3,
 						},
 						StorageClass: "standard",
 					},
 				}
-				Expect(k8sClient.Create(ctx, resource)).To(Succeed())
+				Expect(k8sClient.Create(ctx, testGrowi)).To(Succeed())
 			}
 		})
 
@@ -123,71 +140,74 @@ var _ = Describe("Growi Controller", func() {
 
 		It("should successfully reconcile the resource", func() {
 			By("Reconciling the created resource")
-			controllerReconciler := &GrowiReconciler{
-				Client: k8sClient,
-				Scheme: k8sClient.Scheme(),
-			}
 
-			_, err := controllerReconciler.Reconcile(ctx, reconcile.Request{
-				NamespacedName: growiTypeNamespacedName,
-			})
 			Expect(err).NotTo(HaveOccurred())
 
 			By("MongoDBSecret should be created")
-			mongodbSecret = &corev1.Secret{}
-			err = k8sClient.Get(ctx, mongodbSecretTypeNamespcedName, mongodbSecret)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(mongodbSecret.Name).To(Equal("test-resource-mongodb-secret"))
-			Expect(mongodbSecret.Namespace).To(Equal(testNamespaceName))
-			Expect(mongodbSecret.ObjectMeta.Labels).To(HaveKeyWithValue("app.kubernetes.io/name", "growi"))
-			Expect(mongodbSecret.ObjectMeta.Labels).To(HaveKeyWithValue("app.kubernetes.io/instance", resourceName))
-			Expect(mongodbSecret.ObjectMeta.Labels).To(HaveKeyWithValue("app.kubernetes.io/managed-by", FIELDMANAGER_NAME))
-			Expect(mongodbSecret.GetManagedFields()).To(HaveLen(1))
-			Expect(mongodbSecret.GetManagedFields()[0].Manager).To(Equal(FIELDMANAGER_NAME))
-			Expect(mongodbSecret.Data).To(HaveKey("MONGO_INITDB_ROOT_USERNAME"))
-			Expect(mongodbSecret.Data).To(HaveKey("MONGO_INITDB_ROOT_PASSWORD"))
-
-			By("Delete and recreate the MongoDBSecret")
-			Expect(k8sClient.Delete(ctx, mongodbSecret)).To(Succeed())
-			mongodbSecret = &corev1.Secret{}
-			err = k8sClient.Get(ctx, mongodbSecretTypeNamespcedName, mongodbSecret)
-			Expect(apierrors.IsNotFound(err)).To(BeTrue())
-
-			_, err = controllerReconciler.Reconcile(ctx, reconcile.Request{
-				NamespacedName: growiTypeNamespacedName,
-			})
-			Expect(err).NotTo(HaveOccurred())
 
 			Eventually(func() error {
-				mongodbSecret = &corev1.Secret{}
-				err = k8sClient.Get(ctx, mongodbSecretTypeNamespcedName, mongodbSecret)
+				err = k8sClient.Get(ctx, mongodbSecretTypeNamespcedName, testMongodbSecret)
 				if err != nil {
 					return err
 				}
 				return nil
-			}).Should(Succeed())
+			}, timeout, interval).Should(Succeed())
 
 			Expect(err).NotTo(HaveOccurred())
-			Expect(mongodbSecret.Name).To(Equal("test-resource-mongodb-secret"))
-			Expect(mongodbSecret.Namespace).To(Equal(testNamespaceName))
-			Expect(mongodbSecret.ObjectMeta.Labels).To(HaveKeyWithValue("app.kubernetes.io/name", "growi"))
-			Expect(mongodbSecret.ObjectMeta.Labels).To(HaveKeyWithValue("app.kubernetes.io/instance", resourceName))
-			Expect(mongodbSecret.ObjectMeta.Labels).To(HaveKeyWithValue("app.kubernetes.io/managed-by", FIELDMANAGER_NAME))
-			Expect(mongodbSecret.GetManagedFields()).To(HaveLen(1))
-			Expect(mongodbSecret.GetManagedFields()[0].Manager).To(Equal(FIELDMANAGER_NAME))
-			Expect(mongodbSecret.Data).To(HaveKey("MONGO_INITDB_ROOT_USERNAME"))
-			Expect(mongodbSecret.Data).To(HaveKey("MONGO_INITDB_ROOT_PASSWORD"))
+			Expect(testMongodbSecret.Name).To(Equal(testMongodbSecretName))
+			Expect(testMongodbSecret.Namespace).To(Equal(testNamespaceName))
+			Expect(testMongodbSecret.ObjectMeta.Labels).To(HaveKeyWithValue("app.kubernetes.io/name", "growi"))
+			Expect(testMongodbSecret.ObjectMeta.Labels).To(HaveKeyWithValue("app.kubernetes.io/instance", testGrowiName))
+			Expect(testMongodbSecret.ObjectMeta.Labels).To(HaveKeyWithValue("app.kubernetes.io/managed-by", FIELDMANAGER_NAME))
+			Expect(testMongodbSecret.GetManagedFields()).To(HaveLen(1))
+			Expect(testMongodbSecret.GetManagedFields()[0].Manager).To(Equal(FIELDMANAGER_NAME))
+			Expect(testMongodbSecret.Data).To(HaveKey(testMongodbSecretKeyName[0]))
+			Expect(testMongodbSecret.Data).To(HaveKey(testMongodbSecretKeyName[1]))
+			Expect(testMongodbSecret.Data).To(HaveKey(testMongodbSecretKeyName[2]))
+
+			By("MongodbStatefulSet should be created")
+			Eventually(func() error {
+				err = k8sClient.Get(ctx, mongodbStatefulSetTypeNamespacedName, testMongodbStatefulSet)
+				if err != nil {
+					return err
+				}
+				return nil
+			}, timeout, interval).Should(Succeed())
+
+			Expect(err).NotTo(HaveOccurred())
+			Expect(testMongodbStatefulSet.Name).To(Equal(testMongodbStatefulSetName))
+			Expect(testMongodbStatefulSet.Namespace).To(Equal(testNamespaceName))
+
+			By("Delete and recreate the MongoDBSecret")
+			Expect(k8sClient.Delete(ctx, testMongodbSecret)).To(Succeed())
+
+			Eventually(func() error {
+				err = k8sClient.Get(ctx, mongodbSecretTypeNamespcedName, testMongodbSecret)
+				if err != nil {
+					return err
+				}
+				return nil
+			}, timeout, interval).Should(Succeed())
+
+			Expect(err).NotTo(HaveOccurred())
+			Expect(testMongodbSecret.Name).To(Equal(testMongodbSecretName))
+			Expect(testMongodbSecret.Namespace).To(Equal(testNamespaceName))
+			Expect(testMongodbSecret.ObjectMeta.Labels).To(HaveKeyWithValue("app.kubernetes.io/name", "growi"))
+			Expect(testMongodbSecret.ObjectMeta.Labels).To(HaveKeyWithValue("app.kubernetes.io/instance", testGrowiName))
+			Expect(testMongodbSecret.ObjectMeta.Labels).To(HaveKeyWithValue("app.kubernetes.io/managed-by", FIELDMANAGER_NAME))
+			Expect(testMongodbSecret.GetManagedFields()).To(HaveLen(1))
+			Expect(testMongodbSecret.GetManagedFields()[0].Manager).To(Equal(FIELDMANAGER_NAME))
+			Expect(testMongodbSecret.Data).To(HaveKey(testMongodbSecretKeyName[0]))
+			Expect(testMongodbSecret.Data).To(HaveKey(testMongodbSecretKeyName[1]))
+			Expect(testMongodbSecret.Data).To(HaveKey(testMongodbSecretKeyName[2]))
 
 			By("Deleting the custom resource")
-			Expect(k8sClient.Delete(ctx, growi)).To(Succeed())
-			_, err = controllerReconciler.Reconcile(ctx, reconcile.Request{
-				NamespacedName: growiTypeNamespacedName,
-			})
-			Expect(err).NotTo(HaveOccurred())
-			err = k8sClient.Get(ctx, growiTypeNamespacedName, growi)
+			Expect(k8sClient.Delete(ctx, testGrowi)).To(Succeed())
+
+			err = k8sClient.Get(ctx, growiTypeNamespacedName, testGrowi)
 			Eventually(func() error {
-				growi = &appv1.Growi{}
-				err = k8sClient.Get(ctx, growiTypeNamespacedName, growi)
+				testGrowi = &appv1.Growi{}
+				err = k8sClient.Get(ctx, growiTypeNamespacedName, testGrowi)
 				if apierrors.IsNotFound(err) {
 					return nil
 				}
@@ -195,10 +215,10 @@ var _ = Describe("Growi Controller", func() {
 			}).Should(Succeed())
 
 			By("MongoDBSecret should not be deleted")
-			oldMongoDBSecret := mongodbSecret.DeepCopy()
-			err = k8sClient.Get(ctx, mongodbSecretTypeNamespcedName, mongodbSecret)
+			oldMongoDBSecret := testMongodbSecret.DeepCopy()
+			err = k8sClient.Get(ctx, mongodbSecretTypeNamespcedName, testMongodbSecret)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(reflect.DeepEqual(oldMongoDBSecret, mongodbSecret)).To(BeTrue())
+			Expect(reflect.DeepEqual(oldMongoDBSecret, testMongodbSecret)).To(BeTrue())
 		})
 	})
 })
