@@ -51,10 +51,6 @@ var (
 	testNamespace *corev1.Namespace
 	err           error
 
-	testGrowi              *growiappv1.Growi   = &growiappv1.Growi{}
-	testMongodbSecret      *corev1.Secret      = &corev1.Secret{}
-	testMongodbStatefulSet *appsv1.StatefulSet = &appsv1.StatefulSet{}
-
 	testMongodbSecretKeyName = [3]string{
 		"MONGO_INITDB_ROOT_USERNAME",
 		"MONGO_INITDB_ROOT_PASSWORD",
