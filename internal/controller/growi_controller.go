@@ -21,6 +21,7 @@ import (
 	"reflect"
 
 	appsv1 "k8s.io/api/apps/v1"
+	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -43,8 +44,13 @@ type GrowiReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-// +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=core,resources=services,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=core,resources=secrets,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=core,resources=configmaps,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=core,resources=persistentvolumeclaims,verbs=get;list;watch
+// +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=apps,resources=statefulsets,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=batch,resources=jobs,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=app.maeshinshin.github.io,resources=growis,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=app.maeshinshin.github.io,resources=growis/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=app.maeshinshin.github.io,resources=growis/finalizers,verbs=update
@@ -73,6 +79,7 @@ func (r *GrowiReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 			return ctrl.Result{}, err
 		}
 	}
+	mongodbStatefulSetName := getMongodbStatefulSetName(growi)
 
 	// Check if the Growi instance is marked for deletion
 	if !growi.ObjectMeta.DeletionTimestamp.IsZero() {
@@ -93,17 +100,14 @@ func (r *GrowiReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 
 	// Update status if not set
 	old := growi.DeepCopy()
-	if growi.Status.MongoDBSecretStatus == nil {
-		growi.Status.MongoDBSecretStatus = ptr.To(growiv1.WaitingOtherProcessMongoDBSecret)
-	}
 	if growi.Status.GrowiAppStatus == nil {
 		growi.Status.GrowiAppStatus = ptr.To(growiv1.WaitingOtherProcessGrowiApp)
 	}
-	if growi.Status.MongoDBStatus == nil {
-		growi.Status.MongoDBStatus = ptr.To(growiv1.WaitingOtherProcessMongoDB)
+	if growi.Status.MongodbStatus == nil {
+		growi.Status.MongodbStatus = ptr.To(growiv1.WaitingOtherProcessMongodb)
 	}
-	if growi.Status.ElasticSearchStatus == nil {
-		growi.Status.ElasticSearchStatus = ptr.To(growiv1.WaitingOtherProcessElasticSearch)
+	if growi.Status.ElasticsearchStatus == nil {
+		growi.Status.ElasticsearchStatus = ptr.To(growiv1.WaitingOtherProcessElasticsearch)
 	}
 
 	// update status
@@ -114,10 +118,59 @@ func (r *GrowiReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 		}
 	}
 
-	// Reconcile MongoDB secret
-	if err := r.reconcileMongoDBSecret(ctx, &growi); err != nil {
-		logger.Error(err, "unable to reconcile MongoDB secret")
+	// Reconcile MongoDB
+	if err := r.reconcileMongodb(ctx, &growi); err != nil {
+		if growi.Status.MongodbStatus != ptr.To(growiv1.FailedtoCreateMongodb) {
+			if err := r.updateMongodbStatus(ctx, &growi, growiv1.FailedtoCreateMongodb); err != nil {
+				return ctrl.Result{}, err
+			}
+		}
 		return ctrl.Result{}, err
+	}
+
+	// Reconcile Elasticsearch
+	if err := r.reconcileElasticsearch(ctx, &growi); err != nil {
+		if growi.Status.ElasticsearchStatus != ptr.To(growiv1.FailedtoCreateElasticsearch) {
+			if err := r.updateElasticsearchStatus(ctx, &growi, growiv1.FailedtoCreateElasticsearch); err != nil {
+				return ctrl.Result{}, err
+			}
+		}
+		return ctrl.Result{}, err
+	}
+
+	// get growi
+	if err := r.Get(ctx, req.NamespacedName, &growi); err != nil {
+		if apierrors.IsNotFound(err) {
+			logger.Info("Growi resource not found.")
+			return ctrl.Result{}, nil
+		} else {
+			logger.Error(err, "unable to fetch Growi")
+			return ctrl.Result{}, err
+		}
+	}
+
+	// get mongodbStatefulSet
+	mongodbStatefulSet := &appsv1.StatefulSet{}
+	if err := r.Get(ctx, client.ObjectKey{
+		Name:      mongodbStatefulSetName,
+		Namespace: growi.Namespace,
+	}, mongodbStatefulSet); err != nil {
+		if !apierrors.IsNotFound(err) {
+			logger.Error(err, "unable to get MongoDB statefulset")
+			return ctrl.Result{}, err
+		} else if apierrors.IsNotFound(err) {
+			logger.Info("MongoDB statefulset not found.")
+			return ctrl.Result{}, nil
+		}
+	}
+	// Check if the MongoDB statefulset is Already running
+	if mongodbStatefulSet.Status.ReadyReplicas == growi.Spec.MongodbSpec.Replicas {
+		logger.Info("MongoDB statefulset is already running")
+		if err := r.updateMongodbStatus(ctx, &growi, growiv1.RunningMongodb); err != nil {
+			return ctrl.Result{}, err
+		}
+	} else {
+		return ctrl.Result{RequeueAfter: REQUEUE_INTERVAL}, nil
 	}
 
 	return ctrl.Result{}, nil
@@ -128,10 +181,10 @@ func (r *GrowiReconciler) addFinalizer(ctx context.Context, growi *growiv1.Growi
 	if !controllerutil.ContainsFinalizer(growi, FINALIZER_NAME) {
 		logger.Info("Adding finalizer for the Growi")
 		controllerutil.AddFinalizer(growi, FINALIZER_NAME)
-	}
-	if err := r.Update(ctx, growi); err != nil {
-		logger.Error(err, "unable to update Growi with finalizer")
-		return err
+		if err := r.Update(ctx, growi); err != nil {
+			logger.Error(err, "unable to update Growi with finalizer")
+			return err
+		}
 	}
 	return nil
 }
@@ -141,10 +194,10 @@ func (r *GrowiReconciler) deleteFinalizer(ctx context.Context, growi *growiv1.Gr
 	if controllerutil.ContainsFinalizer(growi, FINALIZER_NAME) {
 		logger.Info("Removing finalizer for the Growi")
 		controllerutil.RemoveFinalizer(growi, FINALIZER_NAME)
-	}
-	if err := r.Update(ctx, growi); err != nil {
-		logger.Error(err, "unable to update Growi with finalizer")
-		return err
+		if err := r.Update(ctx, growi); err != nil {
+			logger.Error(err, "unable to update Growi with finalizer")
+			return err
+		}
 	}
 	return nil
 }
@@ -172,7 +225,7 @@ func (r *GrowiReconciler) SetupWithManager(mgr ctrl.Manager) error {
 						return nil
 					}
 					if secret.Labels["app.kubernetes.io/name"] == "growi" &&
-						secret.Labels["app.kubernetes.io/managed-by"] == "growi-manager" &&
+						secret.Labels["app.kubernetes.io/managed-by"] == FIELDMANAGER_NAME &&
 						secret.Labels["app.kubernetes.io/instance"] != "" {
 						return []ctrl.Request{
 							{
@@ -190,7 +243,33 @@ func (r *GrowiReconciler) SetupWithManager(mgr ctrl.Manager) error {
 				CreateFunc: func(e event.CreateEvent) bool { return false },
 			}),
 		).
-		Owns(&appsv1.Deployment{}).
+		Owns(
+			&corev1.Service{},
+			builder.WithPredicates(predicate.Funcs{
+				CreateFunc: func(e event.CreateEvent) bool { return false },
+			}),
+		).
+		Owns(
+			&batchv1.Job{},
+			builder.WithPredicates(predicate.Funcs{
+				CreateFunc:  func(e event.CreateEvent) bool { return false },
+				DeleteFunc:  func(e event.DeleteEvent) bool { return false },
+				UpdateFunc:  func(e event.UpdateEvent) bool { return false },
+				GenericFunc: func(e event.GenericEvent) bool { return false },
+			}),
+		).
+		Owns(
+			&appsv1.Deployment{},
+			builder.WithPredicates(predicate.Funcs{
+				CreateFunc: func(e event.CreateEvent) bool { return false },
+			}),
+		).
+		Owns(
+			&appsv1.StatefulSet{},
+			builder.WithPredicates(predicate.Funcs{
+				CreateFunc: func(e event.CreateEvent) bool { return false },
+			}),
+		).
 		Named("growi").
 		Complete(r)
 }

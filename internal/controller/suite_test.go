@@ -24,30 +24,50 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	appsv1 "k8s.io/api/apps/v1"
+	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes/scheme"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/rest"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	appv1 "github.com/maeshinshin/growi-manager/api/v1"
-	// +kubebuilder:scaffold:imports
+	growiappv1 "github.com/maeshinshin/growi-manager/api/v1"
 )
 
 // These tests use Ginkgo (BDD-style Go testing framework). Refer to
 // http://onsi.github.io/ginkgo/ to learn more about Ginkgo.
 
 var (
-	ctx               context.Context
-	cancel            context.CancelFunc
-	testEnv           *envtest.Environment
-	cfg               *rest.Config
-	k8sClient         client.Client
-	testNamespace     *corev1.Namespace
-	testNamespaceName = "test-namespace"
+	ctx           context.Context
+	cancel        context.CancelFunc
+	testEnv       *envtest.Environment
+	cfg           *rest.Config
+	k8sClient     client.Client
+	testNamespace *corev1.Namespace
+	err           error
+
+	testMongodbSecretKeyName = [3]string{
+		"MONGO_INITDB_ROOT_USERNAME",
+		"MONGO_INITDB_ROOT_PASSWORD",
+		"mongo.key",
+	}
+)
+
+const (
+	testNamespaceName                    = "test-namespace"
+	testGrowiName                        = "test-growi"
+	testMongodbHeadlessServiceName       = "test-growi-mongodb-headless-service"
+	testMongodbServiceName               = "test-growi-mongodb-service"
+	testMongodbSecretName                = "test-growi-mongodb-secret"
+	testMongodbStatefulSetName           = "test-growi-mongodb-statefulset"
+	testElasticsearchHeadlessServiceName = "test-growi-elasticsearch-headless-service"
+	testElasticsearchServiceName         = "test-growi-elasticsearch-service"
+	testElasticsearchStatefulSetName     = "test-growi-elasticsearch-statefulset"
 )
 
 func TestControllers(t *testing.T) {
@@ -60,9 +80,16 @@ var _ = BeforeSuite(func() {
 	logf.SetLogger(zap.New(zap.WriteTo(GinkgoWriter), zap.UseDevMode(true)))
 
 	ctx, cancel = context.WithCancel(context.TODO())
+	scheme := runtime.NewScheme()
 
 	var err error
-	err = appv1.AddToScheme(scheme.Scheme)
+	err = growiappv1.AddToScheme(scheme)
+	Expect(err).NotTo(HaveOccurred())
+	err = appsv1.AddToScheme(scheme)
+	Expect(err).NotTo(HaveOccurred())
+	err = corev1.AddToScheme(scheme)
+	Expect(err).NotTo(HaveOccurred())
+	err = batchv1.AddToScheme(scheme)
 	Expect(err).NotTo(HaveOccurred())
 
 	// +kubebuilder:scaffold:scheme
@@ -83,7 +110,23 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 	Expect(cfg).NotTo(BeNil())
 
-	k8sClient, err = client.New(cfg, client.Options{Scheme: scheme.Scheme})
+	k8sManager, err := ctrl.NewManager(cfg, ctrl.Options{
+		Scheme: scheme,
+	})
+	Expect(err).NotTo(HaveOccurred())
+
+	err = (&GrowiReconciler{
+		Client: k8sManager.GetClient(),
+		Scheme: k8sManager.GetScheme(),
+	}).SetupWithManager(k8sManager)
+	Expect(err).NotTo(HaveOccurred())
+
+	go func() {
+		defer GinkgoRecover()
+		Expect(k8sManager.Start(ctx)).To(Succeed())
+	}()
+
+	k8sClient = k8sManager.GetClient()
 	Expect(err).NotTo(HaveOccurred())
 	Expect(k8sClient).NotTo(BeNil())
 	By("Creating the test namespace")

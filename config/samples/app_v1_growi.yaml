@@ -11,8 +11,8 @@ spec:
     replicas: 1
   mongodbspec:
     version: "6.0"
-    replicas: 1
+    replicas: 2
   elasticsearchspec:
     version: "8.7.0"
-    replicas: 1
+    replicas: 3
   storageclass: standard

@@ -37,8 +37,8 @@ type GrowiAppSpec struct {
 	Replicas int32 `json:"replicas,omitempty"`
 }
 
-// MongoDBSpec difines the desired state of MongoDB.
-type MongoDBSpec struct {
+// MongodbSpec difines the desired state of MongoDB.
+type MongodbSpec struct {
 	// Version is the version of MongoDB.
 	// +kubebuilder:default="6.0"
 	// +optional
@@ -51,8 +51,8 @@ type MongoDBSpec struct {
 	Replicas int32 `json:"replicas,omitempty"`
 }
 
-// ElasticSearchSpec difines the desired state of ElasticSearch.
-type ElasticSearchSpec struct {
+// ElasticsearchSpec difines the desired state of ElasticSearch.
+type ElasticsearchSpec struct {
 	// Version is the version of ElasticSearch,
 	// +kubebuilder:default="8.7.0"
 	// +optional
@@ -78,13 +78,13 @@ type GrowiSpec struct {
 	// +kubebuilder:validation:Required
 	GrowiAppSpec GrowiAppSpec `json:"growiappspec"`
 
-	// MongoDBSpec is the desired state of MongoDB.
+	// MongodbSpec is the desired state of MongoDB.
 	// +kubebuilder:validation:Required
-	MongoDBSpec MongoDBSpec `json:"mongodbspec"`
+	MongodbSpec MongodbSpec `json:"mongodbspec"`
 
-	// ElasticSearchSpec is the desired state of ElasticSearch.
+	// ElasticsearchSpec is the desired state of ElasticSearch.
 	// +kubebuilder:validation:Required
-	ElasticSearchSpec ElasticSearchSpec `json:"elasticsearchspec"`
+	ElasticsearchSpec ElasticsearchSpec `json:"elasticsearchspec"`
 }
 
 // GrowiStatus defines the observed state of Growi.
@@ -95,36 +95,30 @@ type GrowiStatus struct {
 	// +optional
 	Conditions []metav1.Condition `json:"conditions,omitempty"`
 
-	// MongoDBSecretStatus is the status of MongoDB secret.
-	// +optional
-	MongoDBSecretStatus *MongoDBSecretStatusType `json:"mongodbsecretstatus"`
-
 	// GrowiAppStatus is the status of GrowiApp.
 	// +optional
 	GrowiAppStatus *GrowiAppStatusType `json:"growiappstatus"`
 
-	// MongoDBStatus is the status of MongoDB.
+	// MongodbStatus is the status of MongoDB.
 	// +optional
-	MongoDBStatus *MongoDBStatusType `json:"mongodbstatus"`
+	MongodbStatus *MongodbStatusType `json:"mongodbstatus"`
 
-	// ElasticSearchStatus is the status of ElasticSearch.
+	// ElasticsearchStatus is the status of ElasticSearch.
 	// +optional
-	ElasticSearchStatus *ElasticSearchStatusType `json:"elasticsearchstatus"`
+	ElasticsearchStatus *ElasticsearchStatusType `json:"elasticsearchstatus"`
 }
 
 type (
-	MongoDBSecretStatusType string
 	GrowiAppStatusType      string
-	MongoDBStatusType       string
-	ElasticSearchStatusType string
+	MongodbStatusType       string
+	ElasticsearchStatusType string
 )
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
-// +kubebuilder:printcolumn:name="MongoDBSecret",type="string",JSONPath=.status.mongodbsecretstatus
 // +kubebuilder:printcolumn:name="GrowiApp",type="string",JSONPath=.status.growiappstatus
-// +kubebuilder:printcolumn:name="MongoDB",type="string",JSONPath=.status.mongodbstatus
-// +kubebuilder:printcolumn:name="ElasticSearch",type="string",JSONPath=.status.elasticsearchstatus
+// +kubebuilder:printcolumn:name="Mongodb",type="string",JSONPath=.status.mongodbstatus
+// +kubebuilder:printcolumn:name="Elasticsearch",type="string",JSONPath=.status.elasticsearchstatus
 
 // Growi is the Schema for the growis API.
 type Growi struct {

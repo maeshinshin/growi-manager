@@ -15,17 +15,14 @@ spec:
   scope: Namespaced
   versions:
   - additionalPrinterColumns:
-    - jsonPath: .status.mongodbsecretstatus
-      name: MongoDBSecret
-      type: string
     - jsonPath: .status.growiappstatus
       name: GrowiApp
       type: string
     - jsonPath: .status.mongodbstatus
-      name: MongoDB
+      name: Mongodb
       type: string
     - jsonPath: .status.elasticsearchstatus
-      name: ElasticSearch
+      name: Elasticsearch
       type: string
     name: v1
     schema:
@@ -53,7 +50,7 @@ spec:
             description: GrowiSpec defines the desired state of Growi.
             properties:
               elasticsearchspec:
-                description: ElasticSearchSpec is the desired state of ElasticSearch.
+                description: ElasticsearchSpec is the desired state of ElasticSearch.
                 properties:
                   replicas:
                     default: 3
@@ -79,7 +76,7 @@ spec:
                     type: string
                 type: object
               mongodbspec:
-                description: MongoDBSpec is the desired state of MongoDB.
+                description: MongodbSpec is the desired state of MongoDB.
                 properties:
                   replicas:
                     default: 3
@@ -165,16 +162,13 @@ spec:
                 - type
                 x-kubernetes-list-type: map
               elasticsearchstatus:
-                description: ElasticSearchStatus is the status of ElasticSearch.
+                description: ElasticsearchStatus is the status of ElasticSearch.
                 type: string
               growiappstatus:
                 description: GrowiAppStatus is the status of GrowiApp.
                 type: string
-              mongodbsecretstatus:
-                description: MongoDBSecretStatus is the status of MongoDB secret.
-                type: string
               mongodbstatus:
-                description: MongoDBStatus is the status of MongoDB.
+                description: MongodbStatus is the status of MongoDB.
                 type: string
             type: object
         type: object
