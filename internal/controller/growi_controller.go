@@ -138,6 +138,16 @@ func (r *GrowiReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 		return ctrl.Result{}, err
 	}
 
+	// Reconcile Growi App
+	if err := r.reconcileGrowiapp(ctx, &growi); err != nil {
+		if growi.Status.GrowiAppStatus != ptr.To(growiv1.FailedtoStartGrowiApp) {
+			if err := r.updateGrowiAppStatus(ctx, &growi, growiv1.FailedtoStartGrowiApp); err != nil {
+				return ctrl.Result{}, err
+			}
+		}
+		return ctrl.Result{}, err
+	}
+
 	// get growi
 	if err := r.Get(ctx, req.NamespacedName, &growi); err != nil {
 		if apierrors.IsNotFound(err) {

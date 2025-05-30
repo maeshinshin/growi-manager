@@ -138,7 +138,7 @@ func (r GrowiReconciler) reconcileElasticsearchService(ctx context.Context, grow
 		return nil
 	}
 
-	logger.Info("Creating elasticsearch service")
+	logger.Info("Creating or updating elasticsearch service", "name", elasticsearchServiceName)
 	if err = r.Patch(ctx, patch, client.Apply, &client.PatchOptions{
 		FieldManager: FIELDMANAGER_NAME,
 		Force:        ptr.To(true),

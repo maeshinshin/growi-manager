@@ -93,11 +93,6 @@ func (r GrowiReconciler) reconcileElasticsearchStatefulSet(ctx context.Context, 
 									corev1apply.Container().
 										WithName("elasticsearch").
 										WithImage(getElasticsearchImage(*growi)).
-										// WithCommand(
-										// 	"/bin/sh",
-										// 	"-c",
-										// 	"sleep 3600",
-										// ).
 										WithPorts(
 											corev1apply.ContainerPort().
 												WithName("http").
@@ -238,7 +233,7 @@ func (r GrowiReconciler) reconcileElasticsearchStatefulSet(ctx context.Context, 
 		return err
 	}
 
-	logger.Info("Creating elasticsearch statefulset")
+	logger.Info("Creating or updating elasticsearch statefulset", "name", elasticsearchStatefulSetName)
 	if err := r.Patch(ctx, patch, client.Apply, &client.PatchOptions{
 		FieldManager: FIELDMANAGER_NAME,
 		Force:        ptr.To(true),

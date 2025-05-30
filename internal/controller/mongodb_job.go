@@ -111,7 +111,7 @@ func (r *GrowiReconciler) createMongoDBJob(ctx context.Context, growi *growiv1.G
 		return nil
 	}
 
-	logger.Info("Creating MongoDB job")
+	logger.Info("Creating MongoDB job", "name", jobName)
 	if err := r.Patch(ctx, patch, client.Apply, &client.PatchOptions{
 		FieldManager: FIELDMANAGER_NAME,
 		Force:        ptr.To(true),

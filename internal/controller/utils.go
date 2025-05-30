@@ -11,6 +11,18 @@ func getGrowiAppImage(growi gmv1.Growi) string {
 	return fmt.Sprintf("%s:%s", GROWI_APP_IMAGE, growi.Spec.GrowiAppSpec.Version)
 }
 
+func getGrowiappSecretName(growi gmv1.Growi) string {
+	return fmt.Sprintf("%s-growiapp-secret", growi.Name)
+}
+
+func getGrowiappServiceName(growi gmv1.Growi) string {
+	return fmt.Sprintf("%s-growiapp-service", growi.Name)
+}
+
+func getGrowiappDeploymentName(growi gmv1.Growi) string {
+	return fmt.Sprintf("%s-growiapp-deployment", growi.Name)
+}
+
 func getGrowiDeploymentName(growi gmv1.Growi) string {
 	return fmt.Sprintf("%s-deployment", growi.Name)
 }
@@ -65,10 +77,6 @@ func getMongodbURI(growi gmv1.Growi, username, pass string) string {
 
 func getElasticsearchImage(growi gmv1.Growi) string {
 	return fmt.Sprintf("%s:%s", ELASTICSEARCH_IMAGE, growi.Spec.ElasticsearchSpec.Version)
-}
-
-func getElasticsearchConfigMapName(growi gmv1.Growi) string {
-	return fmt.Sprintf("%s-elasticsearch-configmap", growi.Name)
 }
 
 func getElasticsearchHeadlessServiceName(growi gmv1.Growi) string {
