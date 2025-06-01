@@ -489,7 +489,7 @@ var _ = Describe("Growi Controller", func() {
 			Expect(testElasticsearchStatefulSet.Spec.Template.Spec.Containers[0].Env[4].Name).To(Equal("http.cors.allow-origin"))
 			Expect(testElasticsearchStatefulSet.Spec.Template.Spec.Containers[0].Env[4].Value).To(Equal("\"*\""))
 			Expect(testElasticsearchStatefulSet.Spec.Template.Spec.Containers[0].Env[5].Name).To(Equal("discovery.seed_hosts"))
-			Expect(testElasticsearchStatefulSet.Spec.Template.Spec.Containers[0].Env[5].Value).To(Equal(getElasticsearchHostList(testGrowi)))
+			Expect(testElasticsearchStatefulSet.Spec.Template.Spec.Containers[0].Env[5].Value).To(Equal(getElasticsearchHeadlessServiceFQDN(testGrowi)))
 			Expect(testElasticsearchStatefulSet.Spec.Template.Spec.Containers[0].Env[6].Name).To(Equal("cluster.initial_master_nodes"))
 			Expect(testElasticsearchStatefulSet.Spec.Template.Spec.Containers[0].Env[6].Value).To(Equal(getElasticsearchHostList(testGrowi)))
 			Expect(testElasticsearchStatefulSet.Spec.Template.Spec.Containers[0].Env[7].Name).To(Equal("node.roles"))
