@@ -83,6 +83,10 @@ func getElasticsearchHeadlessServiceName(growi gmv1.Growi) string {
 	return fmt.Sprintf("%s-elasticsearch-headless-service", growi.Name)
 }
 
+func getElasticsearchHeadlessServiceFQDN(growi gmv1.Growi) string {
+	return fmt.Sprintf("%s-elasticsearch-headless-service.%s.svc.cluster.local", growi.Name, growi.Namespace)
+}
+
 func getElasticsearchServiceName(growi gmv1.Growi) string {
 	return fmt.Sprintf("%s-elasticsearch-service", growi.Name)
 }
@@ -106,12 +110,14 @@ func getElasticsearchDataPersistentVolumeClaimName(growi gmv1.Growi) string {
 func getElasticsearchHostList(growi *growiv1.Growi) string {
 	var hostList string
 	elasticsearchStatefulSetName := getElasticsearchStatefulSetName(*growi)
-	getElasticsearchHeadlessServiceName := getElasticsearchHeadlessServiceName(*growi)
+	// getElasticsearchHeadlessServiceName := getElasticsearchHeadlessServiceName(*growi)
 	var i int
 	for i = range int(growi.Spec.ElasticsearchSpec.Replicas) - 1 {
-		hostList += fmt.Sprintf("%s-%d.%s.%s.svc.cluster.local,", elasticsearchStatefulSetName, i, getElasticsearchHeadlessServiceName, growi.Namespace)
+		// hostList += fmt.Sprintf("%s-%d.%s.%s.svc.cluster.local,", elasticsearchStatefulSetName, i, getElasticsearchHeadlessServiceName, growi.Namespace)
+		hostList += fmt.Sprintf("%s-%d,", elasticsearchStatefulSetName, i)
 	}
-	hostList += fmt.Sprintf("%s-%d.%s.%s.svc.cluster.local", elasticsearchStatefulSetName, i+1, getElasticsearchHeadlessServiceName, growi.Namespace)
+	// hostList += fmt.Sprintf("%s-%d.%s.%s.svc.cluster.local", elasticsearchStatefulSetName, i+1, getElasticsearchHeadlessServiceName, growi.Namespace)
+	hostList += fmt.Sprintf("%s-%d", elasticsearchStatefulSetName, i+1)
 	return hostList
 }
 

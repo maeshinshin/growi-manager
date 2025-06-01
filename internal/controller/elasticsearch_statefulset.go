@@ -25,6 +25,7 @@ func (r GrowiReconciler) reconcileElasticsearchStatefulSet(ctx context.Context, 
 	logger := logf.FromContext(ctx)
 	elasticsearchStatefulSetName := getElasticsearchStatefulSetName(*growi)
 	elasticsearchHeadlessServiceName := getElasticsearchHeadlessServiceName(*growi)
+	elasticsearchHeadlessServiceFQDN := getElasticsearchHeadlessServiceFQDN(*growi)
 	elasticsearchStatefulsetLabels := getLabels(*growi, COMPONENT_ELASTICSEARCH)
 	elasticsearchNodeList := getElasticsearchHostList(growi)
 	elasticsearchDataPersistentVolumeClaimName := getElasticsearchDataPersistentVolumeClaimName(*growi)
@@ -121,7 +122,7 @@ func (r GrowiReconciler) reconcileElasticsearchStatefulSet(ctx context.Context, 
 												WithValue("\"*\""),
 											corev1apply.EnvVar().
 												WithName("discovery.seed_hosts").
-												WithValue(elasticsearchNodeList),
+												WithValue(elasticsearchHeadlessServiceFQDN),
 											corev1apply.EnvVar().
 												WithName("cluster.initial_master_nodes").
 												WithValue(elasticsearchNodeList),
