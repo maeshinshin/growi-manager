@@ -1,5 +1,7 @@
 # Image URL to use all building/pushing image targets
 IMG ?= controller:latest
+PARSED_IMG := $(shell echo $(IMG) | cut -d':' -f1)
+PARSED_TAG := $(shell echo $(IMG) | cut -d':' -f2)
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -104,7 +106,8 @@ run: manifests generate fmt vet ## Run a controller from your host.
 # More info: https://docs.docker.com/develop/develop-images/build_enhancements/
 .PHONY: docker-build
 docker-build: ## Build docker image with the manager.
-	$(CONTAINER_TOOL) build -t ${IMG} .
+	KO_DOCKER_REPO=${PARSED_IMG} ko build -L --bare -t ${PARSED_TAG} cmd/main.go
+	## $(CONTAINER_TOOL) build -t ${IMG} .
 
 .PHONY: docker-push
 docker-push: ## Push docker image with the manager.

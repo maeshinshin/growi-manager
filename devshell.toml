@@ -8,6 +8,9 @@ package = "go"
 package = "gotest"
 
 [[commands]]
+package = "ko"
+
+[[commands]]
 name = "make"
 package = "gnumake"
 
