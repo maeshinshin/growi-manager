@@ -42,15 +42,15 @@ var _ = Describe("Growi Controller", func() {
 		interval = time.Millisecond * 250
 	)
 	var (
-		testGrowi                        *growiappv1.Growi   = &growiappv1.Growi{}
-		testMongodbHeadlessService       *corev1.Service     = &corev1.Service{}
-		testMongodbService               *corev1.Service     = &corev1.Service{}
-		testMongodbSecret                *corev1.Secret      = &corev1.Secret{}
-		testMongodbStatefulSet           *appsv1.StatefulSet = &appsv1.StatefulSet{}
-		testMongodbJob                   *batchv1.Job        = &batchv1.Job{}
-		testElasticsearchHeadlessService *corev1.Service     = &corev1.Service{}
-		testElasticsearchService         *corev1.Service     = &corev1.Service{}
-		testElasticsearchStatefulSet     *appsv1.StatefulSet = &appsv1.StatefulSet{}
+		testGrowi                        = &growiappv1.Growi{}
+		testMongodbHeadlessService       = &corev1.Service{}
+		testMongodbService               = &corev1.Service{}
+		testMongodbSecret                = &corev1.Secret{}
+		testMongodbStatefulSet           = &appsv1.StatefulSet{}
+		testMongodbJob                   = &batchv1.Job{}
+		testElasticsearchHeadlessService = &corev1.Service{}
+		testElasticsearchService         = &corev1.Service{}
+		testElasticsearchStatefulSet     = &appsv1.StatefulSet{}
 	)
 
 	Context("When reconciling a resource", func() {
@@ -489,9 +489,9 @@ var _ = Describe("Growi Controller", func() {
 			Expect(testElasticsearchStatefulSet.Spec.Template.Spec.Containers[0].Env[4].Name).To(Equal("http.cors.allow-origin"))
 			Expect(testElasticsearchStatefulSet.Spec.Template.Spec.Containers[0].Env[4].Value).To(Equal("\"*\""))
 			Expect(testElasticsearchStatefulSet.Spec.Template.Spec.Containers[0].Env[5].Name).To(Equal("discovery.seed_hosts"))
-			Expect(testElasticsearchStatefulSet.Spec.Template.Spec.Containers[0].Env[5].Value).To(Equal(getElasticsearchHeadlessServiceFQDN(testGrowi)))
+			Expect(testElasticsearchStatefulSet.Spec.Template.Spec.Containers[0].Env[5].Value).To(Equal(getElasticsearchHeadlessServiceFQDN(*testGrowi)))
 			Expect(testElasticsearchStatefulSet.Spec.Template.Spec.Containers[0].Env[6].Name).To(Equal("cluster.initial_master_nodes"))
-			Expect(testElasticsearchStatefulSet.Spec.Template.Spec.Containers[0].Env[6].Value).To(Equal(getElasticsearchHostList(testGrowi)))
+			Expect(testElasticsearchStatefulSet.Spec.Template.Spec.Containers[0].Env[6].Value).To(Equal(getElasticsearchHostList(*testGrowi)))
 			Expect(testElasticsearchStatefulSet.Spec.Template.Spec.Containers[0].Env[7].Name).To(Equal("node.roles"))
 			Expect(testElasticsearchStatefulSet.Spec.Template.Spec.Containers[0].Env[7].Value).To(Equal("[master, data, ingest]"))
 			Expect(testElasticsearchStatefulSet.Spec.Template.Spec.Containers[0].Env[8].Name).To(Equal("bootstrap.memory_lock"))

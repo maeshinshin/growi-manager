@@ -82,7 +82,7 @@ func (r *GrowiReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 	mongodbStatefulSetName := getMongodbStatefulSetName(growi)
 
 	// Check if the Growi instance is marked for deletion
-	if !growi.ObjectMeta.DeletionTimestamp.IsZero() {
+	if !growi.DeletionTimestamp.IsZero() {
 		logger.Info("Growi is being deleted")
 		if err := r.deleteFinalizer(ctx, &growi); err != nil {
 			logger.Error(err, "unable to remove finalizer")

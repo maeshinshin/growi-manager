@@ -27,7 +27,7 @@ func (r GrowiReconciler) reconcileElasticsearchStatefulSet(ctx context.Context, 
 	elasticsearchHeadlessServiceName := getElasticsearchHeadlessServiceName(*growi)
 	elasticsearchHeadlessServiceFQDN := getElasticsearchHeadlessServiceFQDN(*growi)
 	elasticsearchStatefulsetLabels := getLabels(*growi, COMPONENT_ELASTICSEARCH)
-	elasticsearchNodeList := getElasticsearchHostList(growi)
+	elasticsearchNodeList := getElasticsearchHostList(*growi)
 	elasticsearchDataPersistentVolumeClaimName := getElasticsearchDataPersistentVolumeClaimName(*growi)
 
 	// Chech if the Elasticsearch statefulset already exists

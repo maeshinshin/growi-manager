@@ -23,7 +23,7 @@ import (
 func (r *GrowiReconciler) reconcileGrowiappDeployment(ctx context.Context, growi *growiv1.Growi) error {
 	var err error
 	logger := logf.FromContext(ctx)
-	growiappDeploymentName := getGrowiDeploymentName(*growi)
+	growiappDeploymentName := getGrowiappDeploymentName(*growi)
 	growiappSecretName := getGrowiappSecretName(*growi)
 	growiappLabels := getLabels(*growi, COMPONENT_GROWIAPP)
 
@@ -65,7 +65,7 @@ func (r *GrowiReconciler) reconcileGrowiappDeployment(ctx context.Context, growi
 								WithContainers(
 									corev1apply.Container().
 										WithName("growiapp").
-										WithImage(getGrowiAppImage(*growi)).
+										WithImage(getGrowiappImage(*growi)).
 										WithImagePullPolicy(corev1.PullIfNotPresent).
 										WithPorts(
 											corev1apply.ContainerPort().

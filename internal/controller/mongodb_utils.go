@@ -8,6 +8,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
+//nolint:gocyclo
 func shouldPatch(ctx context.Context, oldStatefulsetApplyConfig *appsv1apply.StatefulSetApplyConfiguration, newStatefulsetApplyConfig *appsv1apply.StatefulSetApplyConfiguration) bool {
 	logger := logf.FromContext(ctx)
 
