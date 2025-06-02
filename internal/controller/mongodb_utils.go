@@ -8,6 +8,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
+//nolint:gocyclo
 func shouldPatch(ctx context.Context, oldStatefulsetApplyConfig *appsv1apply.StatefulSetApplyConfiguration, newStatefulsetApplyConfig *appsv1apply.StatefulSetApplyConfiguration) bool {
 	logger := logf.FromContext(ctx)
 
@@ -17,17 +18,14 @@ func shouldPatch(ctx context.Context, oldStatefulsetApplyConfig *appsv1apply.Sta
 
 	if !equality.Semantic.DeepEqual(oldStatefulsetApplyConfig, newStatefulsetApplyConfig) {
 		if !equality.Semantic.DeepEqual(oldStatefulsetApplyConfig.Kind, newStatefulsetApplyConfig.Kind) {
-			logger.Info("statefulset kind are not equal")
 			return true
 		}
 
 		if !equality.Semantic.DeepEqual(oldStatefulsetApplyConfig.APIVersion, newStatefulsetApplyConfig.APIVersion) {
-			logger.Info("statefulset apiVersion are not equal")
 			return true
 		}
 
 		if !equality.Semantic.DeepEqual(oldStatefulsetApplyConfig.Name, newStatefulsetApplyConfig.Name) {
-			logger.Info("statefulset name are not equal")
 			return true
 		}
 

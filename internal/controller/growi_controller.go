@@ -82,7 +82,7 @@ func (r *GrowiReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 	mongodbStatefulSetName := getMongodbStatefulSetName(growi)
 
 	// Check if the Growi instance is marked for deletion
-	if !growi.ObjectMeta.DeletionTimestamp.IsZero() {
+	if !growi.DeletionTimestamp.IsZero() {
 		logger.Info("Growi is being deleted")
 		if err := r.deleteFinalizer(ctx, &growi); err != nil {
 			logger.Error(err, "unable to remove finalizer")
@@ -132,6 +132,16 @@ func (r *GrowiReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 	if err := r.reconcileElasticsearch(ctx, &growi); err != nil {
 		if growi.Status.ElasticsearchStatus != ptr.To(growiv1.FailedtoCreateElasticsearch) {
 			if err := r.updateElasticsearchStatus(ctx, &growi, growiv1.FailedtoCreateElasticsearch); err != nil {
+				return ctrl.Result{}, err
+			}
+		}
+		return ctrl.Result{}, err
+	}
+
+	// Reconcile Growi App
+	if err := r.reconcileGrowiapp(ctx, &growi); err != nil {
+		if growi.Status.GrowiAppStatus != ptr.To(growiv1.FailedtoStartGrowiApp) {
+			if err := r.updateGrowiAppStatus(ctx, &growi, growiv1.FailedtoStartGrowiApp); err != nil {
 				return ctrl.Result{}, err
 			}
 		}

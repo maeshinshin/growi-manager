@@ -33,7 +33,7 @@ func (r *GrowiReconciler) reconcileMongodbSecret(ctx context.Context, growi *gro
 		return nil
 	}
 
-	logger.Info("Creating MongoDB secret")
+	logger.Info("Creating MongoDB secret", "name", mongodbSecretName)
 
 	mongoSecret := corev1apply.Secret(mongodbSecretName, growi.Namespace).
 		WithLabels(map[string]string{

@@ -152,7 +152,7 @@ func (r *GrowiReconciler) reconcileMongodbService(ctx context.Context, growi *gr
 		return nil
 	}
 
-	logger.Info("Creating MongoDB service")
+	logger.Info("Creating or updating MongoDB service", "name", mongodbServiceName)
 	if err = r.Patch(ctx, patch, client.Apply, &client.PatchOptions{
 		FieldManager: FIELDMANAGER_NAME,
 		Force:        ptr.To(true),

@@ -252,7 +252,7 @@ func (r GrowiReconciler) reconcileMongodbStatefulSet(ctx context.Context, growi 
 		return err
 	}
 
-	logger.Info("Creating MongoDB statefulset")
+	logger.Info("Creating or updating MongoDB statefulset", "name", mongodbStatefulSetName)
 	if err := r.Patch(ctx, patch, client.Apply, &client.PatchOptions{
 		FieldManager: FIELDMANAGER_NAME,
 		Force:        ptr.To(true),

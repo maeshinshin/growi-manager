@@ -25,8 +25,9 @@ func (r GrowiReconciler) reconcileElasticsearchStatefulSet(ctx context.Context, 
 	logger := logf.FromContext(ctx)
 	elasticsearchStatefulSetName := getElasticsearchStatefulSetName(*growi)
 	elasticsearchHeadlessServiceName := getElasticsearchHeadlessServiceName(*growi)
+	elasticsearchHeadlessServiceFQDN := getElasticsearchHeadlessServiceFQDN(*growi)
 	elasticsearchStatefulsetLabels := getLabels(*growi, COMPONENT_ELASTICSEARCH)
-	elasticsearchNodeList := getElasticsearchHostList(growi)
+	elasticsearchNodeList := getElasticsearchHostList(*growi)
 	elasticsearchDataPersistentVolumeClaimName := getElasticsearchDataPersistentVolumeClaimName(*growi)
 
 	// Chech if the Elasticsearch statefulset already exists
@@ -93,11 +94,6 @@ func (r GrowiReconciler) reconcileElasticsearchStatefulSet(ctx context.Context, 
 									corev1apply.Container().
 										WithName("elasticsearch").
 										WithImage(getElasticsearchImage(*growi)).
-										// WithCommand(
-										// 	"/bin/sh",
-										// 	"-c",
-										// 	"sleep 3600",
-										// ).
 										WithPorts(
 											corev1apply.ContainerPort().
 												WithName("http").
@@ -126,7 +122,7 @@ func (r GrowiReconciler) reconcileElasticsearchStatefulSet(ctx context.Context, 
 												WithValue("\"*\""),
 											corev1apply.EnvVar().
 												WithName("discovery.seed_hosts").
-												WithValue(elasticsearchNodeList),
+												WithValue(elasticsearchHeadlessServiceFQDN),
 											corev1apply.EnvVar().
 												WithName("cluster.initial_master_nodes").
 												WithValue(elasticsearchNodeList),
@@ -238,7 +234,7 @@ func (r GrowiReconciler) reconcileElasticsearchStatefulSet(ctx context.Context, 
 		return err
 	}
 
-	logger.Info("Creating elasticsearch statefulset")
+	logger.Info("Creating or updating elasticsearch statefulset", "name", elasticsearchStatefulSetName)
 	if err := r.Patch(ctx, patch, client.Apply, &client.PatchOptions{
 		FieldManager: FIELDMANAGER_NAME,
 		Force:        ptr.To(true),

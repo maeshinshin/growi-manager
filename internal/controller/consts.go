@@ -12,7 +12,7 @@ const (
 
 	// Component labels
 	COMPONENT_INIT_MONGODB  component = "init-mongodb"
-	COMPONENT_GROWI         component = "growi"
+	COMPONENT_GROWIAPP      component = "growi"
 	COMPONENT_MONGODB       component = "mongodb"
 	COMPONENT_ELASTICSEARCH component = "elasticsearch"
 

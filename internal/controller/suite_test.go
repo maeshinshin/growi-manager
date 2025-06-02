@@ -130,12 +130,12 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 	Expect(k8sClient).NotTo(BeNil())
 	By("Creating the test namespace")
-	namespace := &corev1.Namespace{
+	testNamespace = &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: testNamespaceName,
 		},
 	}
-	err = k8sClient.Create(ctx, namespace)
+	err = k8sClient.Create(ctx, testNamespace)
 	Expect(err).NotTo(HaveOccurred())
 })
 
