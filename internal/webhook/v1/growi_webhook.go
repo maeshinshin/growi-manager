@@ -26,7 +26,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
-	appv1 "github.com/maeshinshin/growi-manager/api/v1"
+	growiappsv1 "github.com/maeshinshin/growi-manager/api/v1"
 )
 
 // nolint:unused
@@ -35,7 +35,7 @@ var growilog = logf.Log.WithName("growi-resource")
 
 // SetupGrowiWebhookWithManager registers the webhook for Growi in the manager.
 func SetupGrowiWebhookWithManager(mgr ctrl.Manager) error {
-	return ctrl.NewWebhookManagedBy(mgr).For(&appv1.Growi{}).
+	return ctrl.NewWebhookManagedBy(mgr).For(&growiappsv1.Growi{}).
 		WithValidator(&GrowiCustomValidator{}).
 		Complete()
 }
@@ -45,7 +45,7 @@ func SetupGrowiWebhookWithManager(mgr ctrl.Manager) error {
 // TODO(user): change verbs to "verbs=create;update;delete" if you want to enable deletion validation.
 // NOTE: The 'path' attribute must follow a specific pattern and should not be modified directly here.
 // Modifying the path for an invalid path can cause API server errors; failing to locate the webhook.
-// +kubebuilder:webhook:path=/validate-app-maeshinshin-github-io-v1-growi,mutating=false,failurePolicy=fail,sideEffects=None,groups=app.maeshinshin.github.io,resources=growis,verbs=create;update,versions=v1,name=vgrowi-v1.kb.io,admissionReviewVersions=v1
+// +kubebuilder:webhook:path=/validate-apps-maesh-dev-v1-growi,mutating=false,failurePolicy=fail,sideEffects=None,groups=apps.maesh.dev,resources=growis,verbs=create;update,versions=v1,name=vgrowi-v1.kb.io,admissionReviewVersions=v1
 
 // GrowiCustomValidator struct is responsible for validating the Growi resource
 // when it is created, updated, or deleted.
@@ -60,7 +60,7 @@ var _ webhook.CustomValidator = &GrowiCustomValidator{}
 
 // ValidateCreate implements webhook.CustomValidator so a webhook will be registered for the type Growi.
 func (v *GrowiCustomValidator) ValidateCreate(ctx context.Context, obj runtime.Object) (admission.Warnings, error) {
-	growi, ok := obj.(*appv1.Growi)
+	growi, ok := obj.(*growiappsv1.Growi)
 	if !ok {
 		return nil, fmt.Errorf("expected a Growi object but got %T", obj)
 	}
@@ -73,7 +73,7 @@ func (v *GrowiCustomValidator) ValidateCreate(ctx context.Context, obj runtime.O
 
 // ValidateUpdate implements webhook.CustomValidator so a webhook will be registered for the type Growi.
 func (v *GrowiCustomValidator) ValidateUpdate(ctx context.Context, oldObj, newObj runtime.Object) (admission.Warnings, error) {
-	growi, ok := newObj.(*appv1.Growi)
+	growi, ok := newObj.(*growiappsv1.Growi)
 	if !ok {
 		return nil, fmt.Errorf("expected a Growi object for the newObj but got %T", newObj)
 	}
@@ -86,7 +86,7 @@ func (v *GrowiCustomValidator) ValidateUpdate(ctx context.Context, oldObj, newOb
 
 // ValidateDelete implements webhook.CustomValidator so a webhook will be registered for the type Growi.
 func (v *GrowiCustomValidator) ValidateDelete(ctx context.Context, obj runtime.Object) (admission.Warnings, error) {
-	growi, ok := obj.(*appv1.Growi)
+	growi, ok := obj.(*growiappsv1.Growi)
 	if !ok {
 		return nil, fmt.Errorf("expected a Growi object but got %T", obj)
 	}

@@ -4,9 +4,9 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.17.2
-  name: growis.app.maeshinshin.github.io
+  name: growis.apps.maesh.dev
 spec:
-  group: app.maeshinshin.github.io
+  group: apps.maesh.dev
   names:
     kind: Growi
     listKind: GrowiList

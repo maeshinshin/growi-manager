@@ -1,7 +1,7 @@
 # This rule is not used by the project growi-manager itself.
 # It is provided to allow the cluster admin to help manage permissions for users.
 #
-# Grants permissions to create, update, and delete resources within the app.maeshinshin.github.io.
+# Grants permissions to create, update, and delete resources within the apps.maesh.dev
 # This role is intended for users who need to manage these resources
 # but should not control RBAC or manage permissions for others.
 
@@ -14,7 +14,7 @@ metadata:
   name: growi-editor-role
 rules:
 - apiGroups:
-  - app.maeshinshin.github.io
+  - apps.maesh.dev
   resources:
   - growis
   verbs:
@@ -26,7 +26,7 @@ rules:
   - update
   - watch
 - apiGroups:
-  - app.maeshinshin.github.io
+  - apps.maesh.dev
   resources:
   - growis/status
   verbs:

@@ -8,7 +8,7 @@ const (
 	ELASTICSEARCH_IMAGE = "docker.elastic.co/elasticsearch/elasticsearch"
 
 	FIELDMANAGER_NAME = "growi-controller"
-	FINALIZER_NAME    = "growi.app.maeshinshin.github.io/finalizer"
+	FINALIZER_NAME    = "growi.apps.maesh.dev/finalizer"
 
 	// Component labels
 	COMPONENT_INIT_MONGODB  component = "init-mongodb"

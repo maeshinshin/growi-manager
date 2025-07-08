@@ -27,32 +27,6 @@ rules:
   - list
   - watch
 - apiGroups:
-  - app.maeshinshin.github.io
-  resources:
-  - growis
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - app.maeshinshin.github.io
-  resources:
-  - growis/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - app.maeshinshin.github.io
-  resources:
-  - growis/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
   - apps
   resources:
   - deployments
@@ -65,6 +39,32 @@ rules:
   - patch
   - update
   - watch
+- apiGroups:
+  - apps.maesh.dev
+  resources:
+  - growis
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - apps.maesh.dev
+  resources:
+  - growis/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - apps.maesh.dev
+  resources:
+  - growis/status
+  verbs:
+  - get
+  - patch
+  - update
 - apiGroups:
   - batch
   resources:

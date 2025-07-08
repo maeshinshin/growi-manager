@@ -10,12 +10,12 @@ webhooks:
     service:
       name: webhook-service
       namespace: system
-      path: /validate-app-maeshinshin-github-io-v1-growi
+      path: /validate-apps-maesh-dev-v1-growi
   failurePolicy: Fail
   name: vgrowi-v1.kb.io
   rules:
   - apiGroups:
-    - app.maeshinshin.github.io
+    - apps.maesh.dev
     apiVersions:
     - v1
     operations:

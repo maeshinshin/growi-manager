@@ -1,7 +1,7 @@
 # This rule is not used by the project growi-manager itself.
 # It is provided to allow the cluster admin to help manage permissions for users.
 #
-# Grants read-only access to app.maeshinshin.github.io resources.
+# Grants read-only access to apps.maesh.dev resources.
 # This role is intended for users who need visibility into these resources
 # without permissions to modify them. It is ideal for monitoring purposes and limited-access viewing.
 
@@ -14,7 +14,7 @@ metadata:
   name: growi-viewer-role
 rules:
 - apiGroups:
-  - app.maeshinshin.github.io
+  - apps.maesh.dev
   resources:
   - growis
   verbs:
@@ -22,7 +22,7 @@ rules:
   - list
   - watch
 - apiGroups:
-  - app.maeshinshin.github.io
+  - apps.maesh.dev
   resources:
   - growis/status
   verbs:
