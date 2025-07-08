@@ -3,102 +3,102 @@ package controller
 import (
 	"fmt"
 
-	growiappv1 "github.com/maeshinshin/growi-manager/api/v1"
+	growiv1 "github.com/maeshinshin/growi-manager/api/v1"
 )
 
-func getGrowiappImage(growi growiappv1.Growi) string {
+func getGrowiappImage(growi growiv1.Growi) string {
 	return fmt.Sprintf("%s:%s", GROWI_APP_IMAGE, growi.Spec.GrowiAppSpec.Version)
 }
 
-func getGrowiappSecretName(growi growiappv1.Growi) string {
+func getGrowiappSecretName(growi growiv1.Growi) string {
 	return fmt.Sprintf("%s-growiapp-secret", growi.Name)
 }
 
-func getGrowiappServiceName(growi growiappv1.Growi) string {
+func getGrowiappServiceName(growi growiv1.Growi) string {
 	return fmt.Sprintf("%s-growiapp-service", growi.Name)
 }
 
-func getGrowiappDeploymentName(growi growiappv1.Growi) string {
+func getGrowiappDeploymentName(growi growiv1.Growi) string {
 	return fmt.Sprintf("%s-growiapp-deployment", growi.Name)
 }
 
-func getMongodbImage(growi growiappv1.Growi) string {
+func getMongodbImage(growi growiv1.Growi) string {
 	return fmt.Sprintf("%s:%s", MONGODB_IMAGE, growi.Spec.MongodbSpec.Version)
 }
 
-func getMongodbSecretName(growi growiappv1.Growi) string {
+func getMongodbSecretName(growi growiv1.Growi) string {
 	return fmt.Sprintf("%s-mongodb-secret", growi.Name)
 }
 
-func getMongodbJobName(growi growiappv1.Growi) string {
+func getMongodbJobName(growi growiv1.Growi) string {
 	return fmt.Sprintf("%s-mongodb-job", growi.Name)
 }
 
-func getMongodbStatefulSetName(growi growiappv1.Growi) string {
+func getMongodbStatefulSetName(growi growiv1.Growi) string {
 	return fmt.Sprintf("%s-mongodb-statefulset", growi.Name)
 }
 
-func getMongodbPersistentVolumeClaimName(growi growiappv1.Growi) string {
+func getMongodbPersistentVolumeClaimName(growi growiv1.Growi) string {
 	return fmt.Sprintf("%s-mongodb-pvc", growi.Name)
 }
 
-func getMongodbPersistentVolumeClaimNameOfZero(growi growiappv1.Growi) string {
+func getMongodbPersistentVolumeClaimNameOfZero(growi growiv1.Growi) string {
 	return fmt.Sprintf("%s-%s-0", getMongodbPersistentVolumeClaimName(growi), getMongodbStatefulSetName(growi))
 }
 
-func getMongodbHeadlessServiceName(growi growiappv1.Growi) string {
+func getMongodbHeadlessServiceName(growi growiv1.Growi) string {
 	return fmt.Sprintf("%s-mongodb-headless-service", growi.Name)
 }
 
-func getMongodbServiceName(growi growiappv1.Growi) string {
+func getMongodbServiceName(growi growiv1.Growi) string {
 	return fmt.Sprintf("%s-mongodb-service", growi.Name)
 }
 
-func getMongodbPodOfZeroFQDN(growi growiappv1.Growi) string {
+func getMongodbPodOfZeroFQDN(growi growiv1.Growi) string {
 	return fmt.Sprintf("%s-0.%s.%s.svc.cluster.local", getMongodbStatefulSetName(growi), getMongodbHeadlessServiceName(growi), growi.Namespace)
 }
 
-func getMongodbServiceFQDN(growi growiappv1.Growi) string {
+func getMongodbServiceFQDN(growi growiv1.Growi) string {
 	return fmt.Sprintf("%s.%s.svc.cluster.local", getMongodbServiceName(growi), growi.Namespace)
 }
 
-func getMongodbURI(growi growiappv1.Growi, username, pass string) string {
+func getMongodbURI(growi growiv1.Growi, username, pass string) string {
 	return fmt.Sprintf("mongodb://%s:%s@%s:27017/growi?authSource=admin", username, pass, getMongodbServiceFQDN(growi))
 }
 
-func getElasticsearchImage(growi growiappv1.Growi) string {
+func getElasticsearchImage(growi growiv1.Growi) string {
 	return fmt.Sprintf("%s:%s", ELASTICSEARCH_IMAGE, growi.Spec.ElasticsearchSpec.Version)
 }
 
-func getElasticsearchHeadlessServiceName(growi growiappv1.Growi) string {
+func getElasticsearchHeadlessServiceName(growi growiv1.Growi) string {
 	return fmt.Sprintf("%s-elasticsearch-headless-service", growi.Name)
 }
 
-func getElasticsearchHeadlessServiceFQDN(growi growiappv1.Growi) string {
+func getElasticsearchHeadlessServiceFQDN(growi growiv1.Growi) string {
 	return fmt.Sprintf("%s-elasticsearch-headless-service.%s.svc.cluster.local", growi.Name, growi.Namespace)
 }
 
-func getElasticsearchServiceName(growi growiappv1.Growi) string {
+func getElasticsearchServiceName(growi growiv1.Growi) string {
 	return fmt.Sprintf("%s-elasticsearch-service", growi.Name)
 }
 
-func getElasticsearchServiceFQDN(growi growiappv1.Growi) string {
+func getElasticsearchServiceFQDN(growi growiv1.Growi) string {
 	return fmt.Sprintf("%s-elasticsearch-service.%s.svc.cluster.local", growi.Name, growi.Namespace)
 }
 
-func getElasticsearchURI(growi growiappv1.Growi) string {
+func getElasticsearchURI(growi growiv1.Growi) string {
 	return "http://" + getElasticsearchServiceFQDN(growi) + ":9200/growi"
 }
 
-func getElasticsearchStatefulSetName(growi growiappv1.Growi) string {
+func getElasticsearchStatefulSetName(growi growiv1.Growi) string {
 	return fmt.Sprintf("%s-elasticsearch-statefulset", growi.Name)
 }
 
-func getElasticsearchDataPersistentVolumeClaimName(growi growiappv1.Growi) string {
+func getElasticsearchDataPersistentVolumeClaimName(growi growiv1.Growi) string {
 	return fmt.Sprintf("%s-elasticsearch-data-pvc", growi.Name)
 }
 
-func getElasticsearchHostList(growi growiappv1.Growi) string {
+func getElasticsearchHostList(growi growiv1.Growi) string {
 	var hostList string
 	elasticsearchStatefulSetName := getElasticsearchStatefulSetName(growi)
 	// getElasticsearchHeadlessServiceName := getElasticsearchHeadlessServiceName(*growi)
@@ -112,7 +112,7 @@ func getElasticsearchHostList(growi growiappv1.Growi) string {
 	return hostList
 }
 
-func getLabels(growi growiappv1.Growi, component component) map[string]string {
+func getLabels(growi growiv1.Growi, component component) map[string]string {
 	return map[string]string{
 		"app.kubernetes.io/name":       "growi",
 		"app.kubernetes.io/instance":   growi.Name,

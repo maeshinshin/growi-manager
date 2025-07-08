@@ -33,7 +33,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	growiappv1 "github.com/maeshinshin/growi-manager/api/v1"
+	growiv1 "github.com/maeshinshin/growi-manager/api/v1"
 )
 
 var _ = Describe("Growi Controller", func() {
@@ -42,7 +42,7 @@ var _ = Describe("Growi Controller", func() {
 		interval = time.Millisecond * 250
 	)
 	var (
-		testGrowi                        = &growiappv1.Growi{}
+		testGrowi                        = &growiv1.Growi{}
 		testMongodbHeadlessService       = &corev1.Service{}
 		testMongodbService               = &corev1.Service{}
 		testMongodbSecret                = &corev1.Secret{}
@@ -67,7 +67,7 @@ var _ = Describe("Growi Controller", func() {
 
 		mongodbHeadlessServiceTypeNamespacedName := types.NamespacedName{
 			Name: getMongodbHeadlessServiceName(
-				growiappv1.Growi{
+				growiv1.Growi{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      testGrowiName,
 						Namespace: testNamespaceName,
@@ -79,7 +79,7 @@ var _ = Describe("Growi Controller", func() {
 
 		mongodbServiceTypeNamespacedName := types.NamespacedName{
 			Name: getMongodbServiceName(
-				growiappv1.Growi{
+				growiv1.Growi{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      testGrowiName,
 						Namespace: testNamespaceName,
@@ -91,7 +91,7 @@ var _ = Describe("Growi Controller", func() {
 
 		mongodbSecretTypeNamespcedName := types.NamespacedName{
 			Name: getMongodbSecretName(
-				growiappv1.Growi{
+				growiv1.Growi{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      testGrowiName,
 						Namespace: testNamespaceName,
@@ -103,7 +103,7 @@ var _ = Describe("Growi Controller", func() {
 
 		mongodbStatefulSetTypeNamespacedName := types.NamespacedName{
 			Name: getMongodbStatefulSetName(
-				growiappv1.Growi{
+				growiv1.Growi{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      testGrowiName,
 						Namespace: testNamespaceName,
@@ -115,7 +115,7 @@ var _ = Describe("Growi Controller", func() {
 
 		mongodbJobTypeNamespacedName := types.NamespacedName{
 			Name: getMongodbJobName(
-				growiappv1.Growi{
+				growiv1.Growi{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      testGrowiName,
 						Namespace: testNamespaceName,
@@ -127,7 +127,7 @@ var _ = Describe("Growi Controller", func() {
 
 		elasticsearchHeadlessServiceTypeNamespacedName := types.NamespacedName{
 			Name: getElasticsearchHeadlessServiceName(
-				growiappv1.Growi{
+				growiv1.Growi{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      testGrowiName,
 						Namespace: testNamespaceName,
@@ -139,7 +139,7 @@ var _ = Describe("Growi Controller", func() {
 
 		elasticsearchServiceTypeNamespacedName := types.NamespacedName{
 			Name: getElasticsearchServiceName(
-				growiappv1.Growi{
+				growiv1.Growi{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      testGrowiName,
 						Namespace: testNamespaceName,
@@ -151,7 +151,7 @@ var _ = Describe("Growi Controller", func() {
 
 		elasticsearchStatefulSetTypeNamespacedName := types.NamespacedName{
 			Name: getElasticsearchStatefulSetName(
-				growiappv1.Growi{
+				growiv1.Growi{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      testGrowiName,
 						Namespace: testNamespaceName,
@@ -171,21 +171,21 @@ var _ = Describe("Growi Controller", func() {
 			By("creating the custom resource for the Kind Growi")
 			err = k8sClient.Get(ctx, growiTypeNamespacedName, testGrowi)
 			if err != nil && apierrors.IsNotFound(err) {
-				testGrowi = &growiappv1.Growi{
+				testGrowi = &growiv1.Growi{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      testGrowiName,
 						Namespace: testNamespaceName,
 					},
-					Spec: growiappv1.GrowiSpec{
-						GrowiAppSpec: growiappv1.GrowiAppSpec{
+					Spec: growiv1.GrowiSpec{
+						GrowiAppSpec: growiv1.GrowiAppSpec{
 							Version:  "7.2.2",
 							Replicas: 1,
 						},
-						MongodbSpec: growiappv1.MongodbSpec{
+						MongodbSpec: growiv1.MongodbSpec{
 							Version:  "6.0",
 							Replicas: 3,
 						},
-						ElasticsearchSpec: growiappv1.ElasticsearchSpec{
+						ElasticsearchSpec: growiv1.ElasticsearchSpec{
 							Version:  "8.7.0",
 							Replicas: 3,
 						},
@@ -198,11 +198,11 @@ var _ = Describe("Growi Controller", func() {
 
 		AfterEach(func() {
 			By("Ensure Growi resource is deleted")
-			growi := &growiappv1.Growi{}
+			growi := &growiv1.Growi{}
 			err := k8sClient.DeleteAllOf(ctx, growi, client.InNamespace(testNamespaceName))
 			Expect(err == nil || apierrors.IsNotFound(err)).To(BeTrue())
 			Eventually(func() error {
-				growi := &growiappv1.GrowiList{}
+				growi := &growiv1.GrowiList{}
 				err = k8sClient.List(ctx, growi, client.InNamespace(testNamespaceName))
 				Expect(err).NotTo(HaveOccurred())
 				if len(growi.Items) == 0 {
@@ -564,7 +564,7 @@ var _ = Describe("Growi Controller", func() {
 
 			err = k8sClient.Get(ctx, growiTypeNamespacedName, testGrowi)
 			Eventually(func() error {
-				testGrowi = &growiappv1.Growi{}
+				testGrowi = &growiv1.Growi{}
 				err = k8sClient.Get(ctx, growiTypeNamespacedName, testGrowi)
 				if apierrors.IsNotFound(err) {
 					return nil
