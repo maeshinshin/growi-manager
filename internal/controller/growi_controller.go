@@ -35,7 +35,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
-	growiv1 "github.com/maeshinshin/growi-manager/api/v1"
+	growiappsv1 "github.com/maeshinshin/growi-manager/api/v1"
 )
 
 // GrowiReconciler reconciles a Growi object
@@ -51,9 +51,9 @@ type GrowiReconciler struct {
 // +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=apps,resources=statefulsets,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=batch,resources=jobs,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=app.maeshinshin.github.io,resources=growis,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=app.maeshinshin.github.io,resources=growis/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups=app.maeshinshin.github.io,resources=growis/finalizers,verbs=update
+// +kubebuilder:rbac:groups=apps.maesh.dev,resources=growis,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=apps.maesh.dev,resources=growis/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=apps.maesh.dev,resources=growis/finalizers,verbs=update
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -69,7 +69,7 @@ func (r *GrowiReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 	logger.Info("Reconciling Growi", "name", req.Name, "namespace", req.Namespace)
 
 	// Fetch the Growi instance
-	var growi growiv1.Growi
+	var growi growiappsv1.Growi
 	if err := r.Get(ctx, req.NamespacedName, &growi); err != nil {
 		if apierrors.IsNotFound(err) {
 			logger.Info("Growi resource not found. Ignoring since object must be deleted")
@@ -101,13 +101,13 @@ func (r *GrowiReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 	// Update status if not set
 	old := growi.DeepCopy()
 	if growi.Status.GrowiAppStatus == nil {
-		growi.Status.GrowiAppStatus = ptr.To(growiv1.WaitingOtherProcessGrowiApp)
+		growi.Status.GrowiAppStatus = ptr.To(growiappsv1.WaitingOtherProcessGrowiApp)
 	}
 	if growi.Status.MongodbStatus == nil {
-		growi.Status.MongodbStatus = ptr.To(growiv1.WaitingOtherProcessMongodb)
+		growi.Status.MongodbStatus = ptr.To(growiappsv1.WaitingOtherProcessMongodb)
 	}
 	if growi.Status.ElasticsearchStatus == nil {
-		growi.Status.ElasticsearchStatus = ptr.To(growiv1.WaitingOtherProcessElasticsearch)
+		growi.Status.ElasticsearchStatus = ptr.To(growiappsv1.WaitingOtherProcessElasticsearch)
 	}
 
 	// update status
@@ -120,8 +120,8 @@ func (r *GrowiReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 
 	// Reconcile MongoDB
 	if err := r.reconcileMongodb(ctx, &growi); err != nil {
-		if growi.Status.MongodbStatus != ptr.To(growiv1.FailedtoCreateMongodb) {
-			if err := r.updateMongodbStatus(ctx, &growi, growiv1.FailedtoCreateMongodb); err != nil {
+		if growi.Status.MongodbStatus != ptr.To(growiappsv1.FailedtoCreateMongodb) {
+			if err := r.updateMongodbStatus(ctx, &growi, growiappsv1.FailedtoCreateMongodb); err != nil {
 				return ctrl.Result{}, err
 			}
 		}
@@ -130,8 +130,18 @@ func (r *GrowiReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 
 	// Reconcile Elasticsearch
 	if err := r.reconcileElasticsearch(ctx, &growi); err != nil {
-		if growi.Status.ElasticsearchStatus != ptr.To(growiv1.FailedtoCreateElasticsearch) {
-			if err := r.updateElasticsearchStatus(ctx, &growi, growiv1.FailedtoCreateElasticsearch); err != nil {
+		if growi.Status.ElasticsearchStatus != ptr.To(growiappsv1.FailedtoCreateElasticsearch) {
+			if err := r.updateElasticsearchStatus(ctx, &growi, growiappsv1.FailedtoCreateElasticsearch); err != nil {
+				return ctrl.Result{}, err
+			}
+		}
+		return ctrl.Result{}, err
+	}
+
+	// Reconcile Growi App
+	if err := r.reconcileGrowiapp(ctx, &growi); err != nil {
+		if growi.Status.GrowiAppStatus != ptr.To(growiappsv1.FailedtoStartGrowiApp) {
+			if err := r.updateGrowiAppStatus(ctx, &growi, growiappsv1.FailedtoStartGrowiApp); err != nil {
 				return ctrl.Result{}, err
 			}
 		}
@@ -176,7 +186,7 @@ func (r *GrowiReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 	// Check if the MongoDB statefulset is Already running
 	if mongodbStatefulSet.Status.ReadyReplicas == growi.Spec.MongodbSpec.Replicas {
 		logger.Info("MongoDB statefulset is already running")
-		if err := r.updateMongodbStatus(ctx, &growi, growiv1.RunningMongodb); err != nil {
+		if err := r.updateMongodbStatus(ctx, &growi, growiappsv1.RunningMongodb); err != nil {
 			return ctrl.Result{}, err
 		}
 	} else {
@@ -186,7 +196,7 @@ func (r *GrowiReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 	return ctrl.Result{}, nil
 }
 
-func (r *GrowiReconciler) addFinalizer(ctx context.Context, growi *growiv1.Growi) error {
+func (r *GrowiReconciler) addFinalizer(ctx context.Context, growi *growiappsv1.Growi) error {
 	logger := logf.FromContext(ctx)
 	if !controllerutil.ContainsFinalizer(growi, FINALIZER_NAME) {
 		logger.Info("Adding finalizer for the Growi")
@@ -199,7 +209,7 @@ func (r *GrowiReconciler) addFinalizer(ctx context.Context, growi *growiv1.Growi
 	return nil
 }
 
-func (r *GrowiReconciler) deleteFinalizer(ctx context.Context, growi *growiv1.Growi) error {
+func (r *GrowiReconciler) deleteFinalizer(ctx context.Context, growi *growiappsv1.Growi) error {
 	logger := logf.FromContext(ctx)
 	if controllerutil.ContainsFinalizer(growi, FINALIZER_NAME) {
 		logger.Info("Removing finalizer for the Growi")
@@ -216,7 +226,7 @@ func (r *GrowiReconciler) deleteFinalizer(ctx context.Context, growi *growiv1.Gr
 func (r *GrowiReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(
-			&growiv1.Growi{},
+			&growiappsv1.Growi{},
 			builder.WithPredicates(
 				predicate.Or(
 					predicate.Not(

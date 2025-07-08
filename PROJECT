@@ -2,7 +2,7 @@
 # This file is used to track the info used to scaffold your project
 # and allow the plugins properly work.
 # More info: https://book.kubebuilder.io/reference/project-config.html
-domain: maeshinshin.github.io
+domain: maesh.dev
 layout:
 - go.kubebuilder.io/v4
 projectName: growi-manager
@@ -12,8 +12,8 @@ resources:
     crdVersion: v1
     namespaced: true
   controller: true
-  domain: maeshinshin.github.io
-  group: app
+  domain: maesh.dev
+  group: apps
   kind: Growi
   path: github.com/maeshinshin/growi-manager/api/v1
   version: v1

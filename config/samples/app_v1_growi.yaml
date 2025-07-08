@@ -1,4 +1,4 @@
-apiVersion: app.maeshinshin.github.io/v1
+apiVersion: apps.maesh.dev/v1
 kind: Growi
 metadata:
   labels:
