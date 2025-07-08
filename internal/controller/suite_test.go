@@ -36,7 +36,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	growiappv1 "github.com/maeshinshin/growi-manager/api/v1"
+	growiv1 "github.com/maeshinshin/growi-manager/api/v1"
 )
 
 // These tests use Ginkgo (BDD-style Go testing framework). Refer to
@@ -83,7 +83,7 @@ var _ = BeforeSuite(func() {
 	scheme := runtime.NewScheme()
 
 	var err error
-	err = growiappv1.AddToScheme(scheme)
+	err = growiv1.AddToScheme(scheme)
 	Expect(err).NotTo(HaveOccurred())
 	err = appsv1.AddToScheme(scheme)
 	Expect(err).NotTo(HaveOccurred())

@@ -150,8 +150,8 @@ func (r *GrowiReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 
 	// Reconcile Growi App
 	if err := r.reconcileGrowiapp(ctx, &growi); err != nil {
-		if growi.Status.GrowiAppStatus != ptr.To(growiv1.FailedtoStartGrowiApp) {
-			if err := r.updateGrowiAppStatus(ctx, &growi, growiv1.FailedtoStartGrowiApp); err != nil {
+		if growi.Status.GrowiAppStatus != ptr.To(growiappsv1.FailedtoStartGrowiApp) {
+			if err := r.updateGrowiAppStatus(ctx, &growi, growiappsv1.FailedtoStartGrowiApp); err != nil {
 				return ctrl.Result{}, err
 			}
 		}
