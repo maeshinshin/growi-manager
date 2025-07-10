@@ -1,92 +1,29 @@
-name: goreleaser
-
+name: Publish
 on:
   push:
     tags:
-      - '*'
-
-permissions: {}
-
+      - 'v*'
 jobs:
-  goreleaser:
-    outputs:
-      hashes: ${{ steps.hash.outputs.hashes }}
-      tag_name: ${{ steps.tag.outputs.tag_name }}
-
-    permissions:
-      packages: write
-      id-token: write
-      contents: write
-
+  publish:
+    name: Publish
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - run: git fetch --prune --unshallow
-
       - uses: actions/setup-go@v5
         with:
           go-version-file: 'go.mod'
           check-latest: true
-
       - uses: ko-build/setup-ko@v0.9
         with:
-          version: v0.18.0
-
-      - uses: imjasonh/setup-crane@v0.4
-
-      - uses: sigstore/cosign-installer@v3.7.0
-
-      - name: Set tag output
-        id: tag
-        run: echo "tag_name=${GITHUB_REF#refs/*/}" >> "$GITHUB_OUTPUT"
-
-      - uses: goreleaser/goreleaser-action@v6.1.0
-        id: run-goreleaser
+          ko-version: '0.18.0'
+      - uses: docker/login-action@v3
         with:
-          version: latest
-          args: release --clean
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: ko-build
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: sign ko-image
+          KO_DOCKER_REPO: ghcr.io/${{ github.repository }}
         run: |
-          digest=$(crane digest "${REGISTRY}":"${GIT_TAG}")
-          cosign sign --yes \
-              -a GIT_HASH="${GIT_HASH}" \
-              -a GIT_TAG="${GIT_TAG}" \
-              -a RUN_ID="${RUN_ID}" \
-              -a RUN_ATTEMPT="${RUN_ATTEMPT}" \
-              "${REGISTRY}@${digest}"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GIT_HASH: ${{ github.sha }}
-          GIT_TAG: ${{ steps.tag.outputs.tag_name }}
-          RUN_ATTEMPT: ${{ github.run_attempt }}
-          RUN_ID: ${{ github.run_id }}
-          REGISTRY: "ghcr.io/${{ github.repository }}"
+          ko build --bare --tags ${{ github.ref_name }} cmd/main.go
 
-      - name: Generate subject
-        id: hash
-        env:
-          ARTIFACTS: "${{ steps.run-goreleaser.outputs.artifacts }}"
-        run: |
-          set -euo pipefail
-
-          checksum_file=$(echo "$ARTIFACTS" | jq -r '.[] | select (.type=="Checksum") | .path')
-          echo "hashes=$(cat $checksum_file | base64 -w0)" >> "$GITHUB_OUTPUT"
-
-  provenance:
-    needs:
-      - goreleaser
-
-    permissions:
-      actions: read
-      id-token: write
-      contents: write
-
-    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.0.0
-    with:
-      base64-subjects: "${{ needs.goreleaser.outputs.hashes }}"
-      upload-assets: true
-      upload-tag-name: "${{ needs.goreleaser.outputs.tag_name }}"
