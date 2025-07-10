@@ -20,20 +20,19 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	appv1 "github.com/maeshinshin/growi-manager/api/v1"
-	// TODO (user): Add any additional imports if needed
+	growiv1 "github.com/maeshinshin/growi-manager/api/v1"
 )
 
 var _ = Describe("Growi Webhook", func() {
 	var (
-		obj       *appv1.Growi
-		oldObj    *appv1.Growi
+		obj       *growiv1.Growi
+		oldObj    *growiv1.Growi
 		validator GrowiCustomValidator
 	)
 
 	BeforeEach(func() {
-		obj = &appv1.Growi{}
-		oldObj = &appv1.Growi{}
+		obj = &growiv1.Growi{}
+		oldObj = &growiv1.Growi{}
 		validator = GrowiCustomValidator{}
 		Expect(validator).NotTo(BeNil(), "Expected validator to be initialized")
 		Expect(oldObj).NotTo(BeNil(), "Expected oldObj to be initialized")
@@ -67,5 +66,4 @@ var _ = Describe("Growi Webhook", func() {
 		//     Expect(validator.ValidateUpdate(ctx, oldObj, obj)).To(BeNil())
 		// })
 	})
-
 })

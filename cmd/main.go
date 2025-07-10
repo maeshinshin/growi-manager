@@ -34,7 +34,7 @@ import (
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
-	appv1 "github.com/maeshinshin/growi-manager/api/v1"
+	growiv1 "github.com/maeshinshin/growi-manager/api/v1"
 	"github.com/maeshinshin/growi-manager/internal/controller"
 	webhookappv1 "github.com/maeshinshin/growi-manager/internal/webhook/v1"
 )
@@ -47,7 +47,7 @@ var (
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
-	utilruntime.Must(appv1.AddToScheme(scheme))
+	utilruntime.Must(growiv1.AddToScheme(scheme))
 	// +kubebuilder:scaffold:scheme
 }
 

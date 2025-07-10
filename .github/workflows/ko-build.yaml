@@ -23,5 +23,5 @@ jobs:
         env:
           KO_DOCKER_REPO: ghcr.io/${{ github.repository }}
         run: |
-          ko build --bare --tags latest,${{ github.ref_name }} cmd/main.go
+          ko build --bare --platform=all --tags latest,${{ github.ref_name }} cmd/main.go
 
