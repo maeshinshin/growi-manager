@@ -2,7 +2,8 @@ name: Publish
 
 on:
   push:
-    branches: ['main']
+    tags:
+      - 'v*'
 
 jobs:
   publish:
@@ -14,4 +15,4 @@ jobs:
         with:
           go-version: '1.24.2'
       - uses: ko-build/setup-ko@v0.9
-      - run: ko build cmd/main.go --platform=all --bare
+      - run: ko build cmd/main.go --platform=all
