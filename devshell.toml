@@ -27,4 +27,5 @@ package = "kubectl"
 package = "kubebuilder"
 
 [[commands]]
-package = "helm"
+name = "helm"
+package = "kubernetes-helm"
