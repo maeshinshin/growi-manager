@@ -3,7 +3,7 @@ name: Patch and Release
 on:
   push:
     branches:
-      - 'v*'
+      - 'release-v*'
 
 jobs:
   build-and-update:
@@ -25,8 +25,8 @@ jobs:
       - name: Update Chart and Values files
         id: update-files
         run: |
-          CHART_VERSION=$(echo "${{ github.ref_name }}" | sed 's/^v//')
-          IMAGE_TAG="${{ github.ref_name }}"
+          CHART_VERSION=$(echo "${{ github.ref_name }}" | sed 's/^release-v//')
+          IMAGE_TAG=$(echo "${{ github.ref_name }}" | sed 's/^release-//')
 
           yq e '.version = "'$CHART_VERSION'"' -i 'charts/growi-manager/Chart.yaml'
           yq e '.appVersion = "'$IMAGE_TAG'"' -i 'charts/growi-manager/Chart.yaml'
@@ -43,7 +43,7 @@ jobs:
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
 
-      - name: Commit and Push changes to v* branch
+      - name: Commit and Push changes to release-v* branch
         run: |
           git add charts/growi-manager/Chart.yaml charts/growi-manager/values.yaml
           if git diff --staged --quiet; then
@@ -56,12 +56,13 @@ jobs:
 
       - name: Create and Push Tag
         run: |
-          if git rev-parse ${{ github.ref_name }} >/dev/null 2>&1; then
-            echo "Tag ${{ github.ref_name }} already exists."
+          TAG=$(echo "${{ github.ref_name }}" | sed 's/^release-//')
+          if git rev-parse $TAG >/dev/null 2>&1; then
+            echo "Tag $TAG already exists."
           else
-            git tag ${{ github.ref_name }}
-            git push origin ${{ github.ref_name }}
-            echo "✅ Created and pushed tag ${{ github.ref_name }}"
+            git tag $TAG
+            git push origin $TAG
+            echo "✅ Created and pushed tag $TAG"
           fi
 
       - name: Merge v* branch into main and Push
