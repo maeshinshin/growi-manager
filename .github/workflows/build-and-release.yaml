@@ -31,34 +31,9 @@ jobs:
         run: |
           ko build --bare --platform=all --tags latest,${{ github.ref_name }} cmd/main.go
 
-      - name: Setup yq
-        uses: mikefarah/yq@v4.44.2
-
-      - name: Update Chart and Values files
-        id: update-files
-        run: |
-          CHART_VERSION=$(echo "${{ github.ref_name }}" | sed 's/^v//')
-          IMAGE_TAG="${{ github.ref_name }}"
-          yq e '.version = "'$CHART_VERSION'"' -i 'charts/growi-manager/Chart.yaml'
-          yq e '.appVersion = "'$IMAGE_TAG'"' -i 'charts/growi-manager/Chart.yaml'
-          yq e '.controllerManager.manager.image.tag = "'$IMAGE_TAG'"' -i 'charts/growi-manager/values.yaml'
-
-          echo "✅ Files updated successfully!"
-          echo "--- Chart.yaml ---"
-          cat 'charts/growi-manager/Chart.yaml'
-          echo "--- values.yaml ---"
-          cat 'charts/growi-manager/values.yaml'
-          
-      - name: Upload chart artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: charts
-          path: charts/
-
   release:
     name: Release Helm Chart
     runs-on: ubuntu-latest
-    needs: build-and-update
     permissions:
       contents: write
     steps:
@@ -72,12 +47,6 @@ jobs:
           git config user.name "$GITHUB_ACTOR"
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
           
-      - name: Download updated chart artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: charts
-          path: charts/
-
       - name: Run chart-releaser
         uses: helm/chart-releaser-action@v1.7.0
         env:
