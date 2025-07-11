@@ -17,6 +17,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
+          token: ${{ secrets.PAT }}
           fetch-depth: 0
 
       - name: Setup yq
@@ -43,6 +44,8 @@ jobs:
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
 
       - name: Create and Push Tag
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT }}
         run: |
           TAG=$(echo "${{ github.ref_name }}" | sed 's/^release-//')
           git add charts/growi-manager/Chart.yaml charts/growi-manager/values.yaml
