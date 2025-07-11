@@ -1,11 +1,11 @@
-name: Publish
+name: Build and Release
 on:
   push:
     tags:
       - 'v*'
 jobs:
-  publish:
-    name: Publish
+  build:
+    name: Build
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -24,4 +24,16 @@ jobs:
           KO_DOCKER_REPO: ghcr.io/${{ github.repository }}
         run: |
           ko build --bare --platform=all --tags latest,${{ github.ref_name }} cmd/main.go
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      - name: Run chart-releaser
+        uses: helm/chart-releaser-action@v1.7.0
+        with:
+          charts-dir: charts
+          config: .cr.yaml
+        env:
+          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 
