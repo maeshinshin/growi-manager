@@ -72,7 +72,6 @@ jobs:
         uses: actions/cache@v4
         with:
           path : |
-            ~/.cache/go-build
             ~/.ko
             ~/.cache/ko
           key: go-vendor-${{ hashFiles('go.sum') }}
