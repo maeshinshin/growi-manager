@@ -1,13 +1,14 @@
 name: Build and Release
 on:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - 'release-v*'
 
 jobs:
   build-and-update:
     name: Build and Update Charts
     runs-on: ubuntu-latest
+    needs: [patch]
     permissions:
       contents: read
       packages: write
@@ -28,12 +29,14 @@ jobs:
         id: ko-build
         env:
           KO_DOCKER_REPO: ghcr.io/${{ github.repository }}
+          TAG: $(echo "${{ github.ref_name }}" | sed 's/^release-//')
         run: |
-          ko build --bare --platform=all --tags latest,${{ github.ref_name }} cmd/main.go
+          ko build --bare --platform=all --tags latest,${TAG} cmd/main.go
 
   release:
     name: Release Helm Chart
     runs-on: ubuntu-latest
+    needs: build-and-update
     permissions:
       contents: write
     steps:
