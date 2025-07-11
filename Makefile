@@ -136,6 +136,9 @@ build-installer: manifests generate kustomize ## Generate a consolidated YAML wi
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
 	$(KUSTOMIZE) build config/default > dist/install.yaml
 
+build-helmchart: manifests generate kustomize
+	$(KUSTOMIZE) build config/default | helmify -crd-dir charts/growi-manager
+
 ##@ Deployment
 
 ifndef ignore-not-found

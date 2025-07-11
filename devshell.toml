@@ -25,3 +25,6 @@ package = "kubectl"
 
 [[commands]]
 package = "kubebuilder"
+
+[[commands]]
+package = "helm"
