@@ -1,0 +1,74 @@
+name: Patch and Release
+
+on:
+  push:
+    branches:
+      - 'v*'
+
+jobs:
+  build-and-update:
+    name: Build and Update Charts
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup yq
+        uses: mikefarah/yq@v4.44.2
+
+      - name: Update Chart and Values files
+        id: update-files
+        run: |
+          CHART_VERSION=$(echo "${{ github.ref_name }}" | sed 's/^v//')
+          IMAGE_TAG="${{ github.ref_name }}"
+
+          yq e '.version = "'$CHART_VERSION'"' -i 'charts/growi-manager/Chart.yaml'
+          yq e '.appVersion = "'$IMAGE_TAG'"' -i 'charts/growi-manager/Chart.yaml'
+          yq e '.controllerManager.manager.image.tag = "'$IMAGE_TAG'"' -i 'charts/growi-manager/values.yaml'
+
+          echo "✅ Files updated successfully!"
+          echo "--- Chart.yaml ---"
+          cat 'charts/growi-manager/Chart.yaml'
+          echo "--- values.yaml ---"
+          cat 'charts/growi-manager/values.yaml'
+
+      - name: Configure Git
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Commit and Push changes to v* branch
+        run: |
+          git add charts/growi-manager/Chart.yaml charts/growi-manager/values.yaml
+          if git diff --staged --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "Update chart version to ${{ github.ref_name }} [skip ci]"
+            git push origin HEAD:${{ github.ref }}
+            echo "✅ Pushed changes to ${{ github.ref_name }}"
+          fi
+
+      - name: Create and Push Tag
+        run: |
+          if git rev-parse ${{ github.ref_name }} >/dev/null 2>&1; then
+            echo "Tag ${{ github.ref_name }} already exists."
+          else
+            git tag ${{ github.ref_name }}
+            git push origin ${{ github.ref_name }}
+            echo "✅ Created and pushed tag ${{ github.ref_name }}"
+          fi
+
+      - name: Merge v* branch into main and Push
+        run: |
+          git fetch origin main
+          git checkout main
+          git merge --no-ff ${{ github.ref_name }} -m "Merge branch '${{ github.ref_name }}' into main [skip ci]"
+          git push origin main
+          echo "✅ Merged ${{ github.ref_name }} into main and pushed."
+
