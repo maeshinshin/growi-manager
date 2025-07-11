@@ -12,7 +12,7 @@ controllerManager:
         - ALL
     image:
       repository: ghcr.io/maeshinshin/growi-manager
-      tag: v0.1.0
+      tag: v0.1.9
     imagePullPolicy: IfNotPresent
     resources:
       limits:
@@ -21,10 +21,6 @@ controllerManager:
       requests:
         cpu: 10m
         memory: 64Mi
-  podSecurityContext:
-    runAsNonRoot: true
-    seccompProfile:
-      type: RuntimeDefault
   replicas: 1
   serviceAccount:
     annotations: {}
