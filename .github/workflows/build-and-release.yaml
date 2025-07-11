@@ -31,8 +31,7 @@ jobs:
         env:
           KO_DOCKER_REPO: ghcr.io/${{ github.repository }}
         run: |
-          IMAGE=$(ko build --bare --platform=all --tags ${{ github.ref_name }} ./cmd/main.go)
-          echo "image=${IMAGE}" >> $GITHUB_OUTPUT
+          ko build --bare --platform=all --tags latest,${{ github.ref_name }} cmd/main.go
 
       - name: Setup yq
         uses: mikefarah/yq@v4.44.2
