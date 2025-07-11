@@ -3,44 +3,85 @@ on:
   push:
     tags:
       - 'v*'
+
 jobs:
-  build:
-    name: Build
+  build-and-update:
+    name: Build and Update Charts
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
         with:
           go-version-file: 'go.mod'
           check-latest: true
-      - uses: ko-build/setup-ko@v0.9
+
+      - name: Setup ko
+        uses: ko-build/setup-ko@v0.9
         with:
           ko-version: '0.18.0'
-      - id: ko-build
+
+      - name: Build and push image with ko
+        id: ko-build
         env:
           KO_DOCKER_REPO: ghcr.io/${{ github.repository }}
         run: |
-          ko build --bare --platform=all --tags latest,${{ github.ref_name }} cmd/main.go
+          IMAGE=$(ko build --bare --platform=all --tags ${{ github.ref_name }} ./cmd/main.go)
+          echo "image=${IMAGE}" >> $GITHUB_OUTPUT
+
+      - name: Setup yq
+        uses: mikefarah/yq@v4.44.2
+
+      - name: Update Chart and Values files
+        id: update-files
+        run: |
+          CHART_VERSION=$(echo "${{ github.ref_name }}" | sed 's/^v//')
+          IMAGE_TAG="${{ github.ref_name }}"
+          yq e '.version = "'$CHART_VERSION'"' -i 'charts/growi-manager/Chart.yaml'
+          yq e '.appVersion = "'$IMAGE_TAG'"' -i 'charts/growi-manager/Chart.yaml'
+          yq e '.controllerManager.manager.image.tag = "'$IMAGE_TAG'"' -i 'charts/growi-manager/values.yaml'
+
+          echo "✅ Files updated successfully!"
+          echo "--- Chart.yaml ---"
+          cat 'charts/growi-manager/Chart.yaml'
+          echo "--- values.yaml ---"
+          cat 'charts/growi-manager/values.yaml'
+          
+      - name: Upload chart artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: charts
+          path: charts/
+
   release:
-    name: Release
+    name: Release Helm Chart
     runs-on: ubuntu-latest
+    needs: build-and-update
     permissions:
-      pages: write
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
       - name: Configure Git
         run: |
           git config user.name "$GITHUB_ACTOR"
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+          
+      - name: Download updated chart artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: charts
+          path: charts/
+
       - name: Run chart-releaser
         uses: helm/chart-releaser-action@v1.7.0
-        with:
-          charts_dir: charts
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
