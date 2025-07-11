@@ -22,21 +22,20 @@ jobs:
       - name: Setup yq
         uses: mikefarah/yq@v4.44.2
 
+      - name: Update installer.yaml
+        run: |
+          IMAGE_TAG=$(echo "${{ github.ref_name }}" | sed 's/^release-//')
+          IMG="ghcr.io/maeshinshin/growi-manager:${IMAGE_TAG}" make build-installer
+
       - name: Update Chart and Values files
-        id: update-files
         run: |
           CHART_VERSION=$(echo "${{ github.ref_name }}" | sed 's/^release-v//')
           IMAGE_TAG=$(echo "${{ github.ref_name }}" | sed 's/^release-//')
 
           yq e '.version = "'$CHART_VERSION'"' -i 'charts/growi-manager/Chart.yaml'
           yq e '.appVersion = "'$IMAGE_TAG'"' -i 'charts/growi-manager/Chart.yaml'
-          yq e '.controllerManager.manager.image.tag = "'$IMAGE_TAG'"' -i 'charts/growi-manager/values.yaml'
+          IMG="ghcr.io/maeshinshin/growi-manager:${IMAGE_TAG}" make build-helmchart
 
-          echo "✅ Files updated successfully!"
-          echo "--- Chart.yaml ---"
-          cat 'charts/growi-manager/Chart.yaml'
-          echo "--- values.yaml ---"
-          cat 'charts/growi-manager/values.yaml'
 
       - name: Configure Git
         run: |
