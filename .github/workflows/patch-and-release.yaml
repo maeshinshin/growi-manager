@@ -1,5 +1,4 @@
-name: Patch and Release
-
+name: Build and Release
 on:
   push:
     branches:
@@ -43,20 +42,68 @@ jobs:
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
 
       - name: Create and Push Tag
-        env:
-          GITHUB_TOKEN: ${{ secrets.PAT }}
         run: |
           TAG=$(echo "${{ github.ref_name }}" | sed 's/^release-//')
           git add charts/growi-manager/Chart.yaml charts/growi-manager/values.yaml
           if git diff --staged --quiet; then
             echo "No changes to commit."
           else
-            git commit -m "Update chart version to ${{ github.ref_name }}"
+            git commit -m "Update chart version to ${{ github.ref_name }} [skip ci]"
             if git rev-parse $TAG >/dev/null 2>&1; then
               echo "Tag $TAG already exists."
             else
               git tag $TAG
               git push origin $TAG
+              git push origin ${{ github.ref_name }}
               echo "✅ Created and pushed tag $TAG"
             fi
           fi
+  build-and-update:
+    name: Build and Update Charts
+    runs-on: ubuntu-latest
+    needs: [patch]
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+          check-latest: true
+
+      - name: Setup ko
+        uses: ko-build/setup-ko@v0.9
+
+      - name: Build and push image with ko
+        id: ko-build
+        env:
+          KO_DOCKER_REPO: ghcr.io/${{ github.repository }}
+        run: |
+          TAG=$(echo "${{ github.ref_name }}" | sed 's/^release-//')
+          ko build --bare --platform=all --tags latest,${TAG} cmd/main.go
+
+  release:
+    name: Release Helm Chart
+    runs-on: ubuntu-latest
+    needs: build-and-update
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+          
+      - name: Run chart-releaser
+        uses: helm/chart-releaser-action@v1.7.0
+        env:
+          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
