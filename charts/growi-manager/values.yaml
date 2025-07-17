@@ -4,7 +4,6 @@ controllerManager:
       - --metrics-bind-address=:8443
       - --leader-elect
       - --health-probe-bind-address=:8081
-      - --webhook-cert-path=/tmp/k8s-webhook-server/serving-certs
     containerSecurityContext:
       allowPrivilegeEscalation: false
       capabilities:
@@ -12,7 +11,6 @@ controllerManager:
           - ALL
     image:
       repository: ghcr.io/maeshinshin/growi-manager
-      tag: v0.2.2
     imagePullPolicy: IfNotPresent
     resources:
       limits:
@@ -31,10 +29,4 @@ metricsService:
       port: 8443
       protocol: TCP
       targetPort: 8443
-  type: ClusterIP
-webhookService:
-  ports:
-    - port: 443
-      protocol: TCP
-      targetPort: 9443
   type: ClusterIP

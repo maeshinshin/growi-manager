@@ -17,7 +17,4 @@ resources:
   kind: Growi
   path: github.com/maeshinshin/growi-manager/api/v1
   version: v1
-  webhooks:
-    validation: true
-    webhookVersion: v1
 version: "3"
