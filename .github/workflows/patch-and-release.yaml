@@ -33,6 +33,7 @@ jobs:
 
           yq e '.version = "'$CHART_VERSION'"' -i 'charts/growi-manager/Chart.yaml'
           yq e '.appVersion = "'$IMAGE_TAG'"' -i 'charts/growi-manager/Chart.yaml'
+          yq e '.controllerManager.manager.image.tag = "'$IMAGE_TAG'"' -i 'charts/growi-manager/values.yaml'
 
       - name: Configure Git
         run: |
