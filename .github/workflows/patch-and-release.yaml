@@ -26,7 +26,7 @@ jobs:
           IMAGE_TAG=$(echo "${{ github.ref_name }}" | sed 's/^release-//')
           IMG="ghcr.io/maeshinshin/growi-manager:${IMAGE_TAG}" make build-installer
 
-      - name: Update Chart and Values files
+      - name: Update Chart and Values file
         run: |
           CHART_VERSION=$(echo "${{ github.ref_name }}" | sed 's/^release-v//')
           IMAGE_TAG=$(echo "${{ github.ref_name }}" | sed 's/^release-//')
