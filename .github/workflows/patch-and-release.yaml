@@ -33,8 +33,6 @@ jobs:
 
           yq e '.version = "'$CHART_VERSION'"' -i 'charts/growi-manager/Chart.yaml'
           yq e '.appVersion = "'$IMAGE_TAG'"' -i 'charts/growi-manager/Chart.yaml'
-          IMG="ghcr.io/maeshinshin/growi-manager:${IMAGE_TAG}" make build-helmchart
-
 
       - name: Configure Git
         run: |
