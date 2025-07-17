@@ -2,6 +2,16 @@ apiVersion: v1
 entries:
   growi-manager:
   - apiVersion: v2
+    appVersion: v0.2.4
+    created: "2025-07-17T15:12:21.0392197Z"
+    description: A Helm chart for Kubernetes
+    digest: 7a072334866206bbdd026285903d9690f81e9a441a6e4130ef6a31e2fdc1d453
+    name: growi-manager
+    type: application
+    urls:
+    - https://github.com/maeshinshin/growi-manager/releases/download/growi-manager-0.2.4/growi-manager-0.2.4.tgz
+    version: 0.2.4
+  - apiVersion: v2
     appVersion: v0.2.3
     created: "2025-07-17T15:02:14.802626028Z"
     description: A Helm chart for Kubernetes
@@ -51,4 +61,4 @@ entries:
     urls:
     - https://github.com/maeshinshin/growi-manager/releases/download/growi-manager-0.1.11/growi-manager-0.1.11.tgz
     version: 0.1.11
-generated: "2025-07-17T15:02:14.802636898Z"
+generated: "2025-07-17T15:12:21.039242774Z"
